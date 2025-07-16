@@ -97,3 +97,4 @@ INSERT INTO reviews (review_id, user_id, product_id, rating, title, content, sta
 
 -- Success message
 SELECT 'Reviews table enhancement completed successfully!' as message;
+
