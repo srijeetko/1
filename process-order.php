@@ -1,4 +1,9 @@
 <?php
+// Prevent any output before JSON response
+ob_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors to prevent JSON corruption
+
 session_start();
 require_once 'includes/db_connection.php';
 
@@ -126,13 +131,13 @@ try {
 
             // Handle variant pricing if needed
             if ($variant_id && $variant_id !== 'default') {
-                // Get variant price if exists
+                // Get variant price modifier and add to base price
                 try {
-                    $stmt = $pdo->prepare("SELECT price FROM product_variants WHERE variant_id = ?");
+                    $stmt = $pdo->prepare("SELECT price_modifier FROM product_variants WHERE variant_id = ?");
                     $stmt->execute([$variant_id]);
                     $variant = $stmt->fetch(PDO::FETCH_ASSOC);
-                    if ($variant && isset($variant['price'])) {
-                        $price = floatval($variant['price']);
+                    if ($variant && isset($variant['price_modifier'])) {
+                        $price = $price + floatval($variant['price_modifier']);
                     }
                 } catch (Exception $e) {
                     // Use base price if variant not found
@@ -156,6 +161,9 @@ try {
 
             $itemTotal = $price * $quantity;
             $totalAmount += $itemTotal;
+
+            // Debug logging for price calculation
+            error_log("Price calculation - Product: {$product['name']}, Base Price: {$product['price']}, Final Price: $price, Quantity: $quantity, Item Total: $itemTotal");
 
             $orderItems[] = [
                 'product_id' => $product_id,
@@ -198,16 +206,19 @@ try {
     // Insert order into checkout_orders table
     $stmt = $pdo->prepare("
         INSERT INTO checkout_orders (
-            order_id, order_number, user_id, first_name, last_name, email, phone, 
-            address, city, state, pincode, total_amount, payment_method, 
+            order_id, order_number, user_id, first_name, last_name, email, phone,
+            address, city, state, pincode, total_amount, payment_method,
             order_status, payment_status, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', NOW())
     ");
-    
-    $stmt->execute([
+
+    $result = $stmt->execute([
         $order_id, $order_number, $user_id, $firstName, $lastName, $email, $phone,
         $address, $city, $state, $pincode, $totalAmount, $paymentMethod
     ]);
+
+    // Log order creation for debugging
+    error_log("Order created - ID: $order_id, Number: $order_number, Amount: $totalAmount, Result: " . ($result ? 'Success' : 'Failed'));
     
     // Insert order items
     foreach ($orderItems as $item) {
@@ -286,21 +297,34 @@ try {
             ");
             $stmt->execute([$transaction_id, $order_id, $totalAmount]);
 
+            // Log for debugging
+            error_log("Cashfree: Created transaction record - ID: $transaction_id, Order: $order_id, Amount: $totalAmount");
+
             // Prepare order data for Cashfree
             $orderData = [
-                'order_number' => $orderNumber,
+                'order_number' => $order_number,
                 'amount' => $totalAmount,
                 'email' => $email,
                 'phone' => $phone,
                 'customer_name' => $firstName . ' ' . $lastName,
                 'user_id' => $user_id,
-                'return_url' => (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/payment-return.php',
-                'notify_url' => (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/payment-webhook.php'
+                'return_url' => CASHFREE_BASE_URL . '/payment-return.php',
+                'notify_url' => CASHFREE_BASE_URL . '/payment-webhook.php'
             ];
+
+            // Log order data for debugging
+            error_log("Cashfree: Creating order with data - " . json_encode($orderData));
 
             $cashfreeOrder = $cashfreeHandler->createOrder($orderData);
 
+            // Log successful order creation
+            error_log("Cashfree: Order created successfully - " . json_encode($cashfreeOrder));
+
+            // Clear any output buffer to prevent JSON corruption
+            ob_clean();
+
             // Send order details to client (updated for API v3)
+            header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
                 'payment_required' => true,
@@ -343,7 +367,11 @@ try {
                 ]
             );
             
+            // Clear any output buffer to prevent JSON corruption
+            ob_clean();
+
             // Send order details to client
+            header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
                 'payment_required' => true,
@@ -388,12 +416,29 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollback();
     }
-    
+
     // Log error
     error_log("Order processing error: " . $e->getMessage());
-    
-    // Redirect back to checkout with error
-    header('Location: checkout.php?error=' . urlencode($e->getMessage()));
-    exit();
+
+    // Check if this is an AJAX request (for payment processing)
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+    if ($isAjax || (isset($_POST['payment_method']) && $_POST['payment_method'] !== 'cod')) {
+        // Clear any output buffer to prevent JSON corruption
+        ob_clean();
+
+        // Return JSON error response
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+        exit();
+    } else {
+        // Redirect back to checkout with error for regular form submissions
+        header('Location: checkout.php?error=' . urlencode($e->getMessage()));
+        exit();
+    }
 }
 ?>

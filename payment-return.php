@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'includes/db_connection.php';
+require_once 'includes/cashfree-config.php';
 require_once 'includes/cashfree-handler.php';
 
 try {
@@ -9,8 +10,14 @@ try {
         throw new Exception('Order ID not found');
     }
 
+    // Log for debugging
+    error_log("Payment return - Order ID received: " . $orderId);
+
     $cashfreeHandler = new CashfreeHandler($pdo);
     $orderStatus = $cashfreeHandler->getOrderStatus($orderId);
+
+    // Log Cashfree response
+    error_log("Payment return - Cashfree status: " . json_encode($orderStatus));
 
     // Get order details from database
     $stmt = $pdo->prepare("
@@ -21,6 +28,9 @@ try {
     ");
     $stmt->execute([$orderId]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Log database query result
+    error_log("Payment return - Order found in DB: " . ($order ? 'Yes' : 'No'));
 
     if (!$order) {
         throw new Exception('Order not found');

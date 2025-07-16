@@ -38,6 +38,11 @@ class CashfreeHandler {
                 $payload['order_id'] = $orderData['order_number'];
             }
 
+            // Log request details for debugging
+            error_log("Cashfree API Request URL: " . CASHFREE_API_BASE_URL . '/orders');
+            error_log("Cashfree API Request Headers: " . json_encode($this->headers));
+            error_log("Cashfree API Request Payload: " . json_encode($payload));
+
             $ch = curl_init(CASHFREE_API_BASE_URL . '/orders');
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
@@ -50,6 +55,13 @@ class CashfreeHandler {
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $curlError = curl_error($ch);
             curl_close($ch);
+
+            // Log response details for debugging
+            error_log("Cashfree API Response Code: " . $httpCode);
+            error_log("Cashfree API Response: " . $response);
+            if ($curlError) {
+                error_log("Cashfree API CURL Error: " . $curlError);
+            }
 
             if ($curlError) {
                 throw new Exception('CURL Error: ' . $curlError);

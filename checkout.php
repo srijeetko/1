@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/auth.php';
+require_once 'includes/cashfree-config.php';
 
 // Check if cart is empty
 if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
