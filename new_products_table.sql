@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL,
+  `slug` VARCHAR(255) NOT NULL UNIQUE,
+  `description` TEXT NOT NULL,
+  `long_description` TEXT,
+  `price` DECIMAL(10,2) NOT NULL,
+  `discounted_price` DECIMAL(10,2),
+  `discount` DECIMAL(5,2),
+  `image` VARCHAR(255) NOT NULL,
+  `category_id` INT NOT NULL,
+  `target_group_id` INT NOT NULL,
+  `in_stock` BOOLEAN DEFAULT TRUE,
+  `is_new` BOOLEAN DEFAULT FALSE,
+  `sku` VARCHAR(100) NOT NULL,
+  `ingredients` TEXT,
+  `weight` DECIMAL(10,2),
+  `servings` INT,
+  `flavor` VARCHAR(100),
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

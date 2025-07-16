@@ -1,0 +1,5 @@
+ALTER TABLE products ADD COLUMN short_description TEXT;
+ALTER TABLE products ADD COLUMN long_description TEXT;
+ALTER TABLE products ADD COLUMN key_benefits TEXT;
+ALTER TABLE products ADD COLUMN how_to_use TEXT;
+ALTER TABLE products ADD COLUMN ingredients TEXT;
