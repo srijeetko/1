@@ -808,67 +808,104 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
         <h2 class="section-title serif">BEST SELLING PRODUCTS</h2>
 
         <?php if (!empty($bestSellerProducts)): ?>
-            <div class="best-seller-grid">
-                <?php foreach ($bestSellerProducts as $product): ?>
-                    <div class="product-card" onclick="window.location.href='product-detail.php?id=<?php echo $product['product_id']; ?>'">
-                        <div class="product-image-container">
-                            <?php
-                            $imageUrl = $product['image_url'] ?? '';
-                            $imagePath = $imageUrl;
-                            ?>
+            <!-- Best Seller Slider Container -->
+            <div class="best-seller-slider-container">
+                <!-- Navigation Arrows -->
+                <button class="slider-nav-btn slider-prev" id="bestSellerPrev" aria-label="Previous products">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="slider-nav-btn slider-next" id="bestSellerNext" aria-label="Next products">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
 
-                            <?php if (!empty($imageUrl) && file_exists($imagePath)): ?>
-                                <img src="<?php echo htmlspecialchars($imageUrl); ?>"
-                                     alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                     class="product-image">
-                            <?php else: ?>
-                                <div class="product-image no-image">
-                                    <i class="fas fa-image"></i>
-                                    <span>No Image</span>
+                <!-- Slider Wrapper -->
+                <div class="best-seller-slider-wrapper" id="bestSellerSliderWrapper">
+                    <div class="best-seller-slider-track" id="bestSellerSliderTrack">
+                        <?php foreach ($bestSellerProducts as $index => $product): ?>
+                            <div class="product-slide" data-slide="<?php echo $index; ?>">
+                                <div class="product-card" onclick="window.location.href='product-detail.php?id=<?php echo $product['product_id']; ?>'">
+                                    <div class="product-image-container">
+                                        <?php
+                                        $imageUrl = $product['image_url'] ?? '';
+                                        $imagePath = $imageUrl;
+                                        ?>
+
+                                        <?php if (!empty($imageUrl) && file_exists($imagePath)): ?>
+                                            <img src="<?php echo htmlspecialchars($imageUrl); ?>"
+                                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                 class="product-image">
+                                        <?php else: ?>
+                                            <div class="product-image no-image">
+                                                <i class="fas fa-image"></i>
+                                                <span>No Image</span>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <div class="best-seller-badge">
+                                            <i class="fas fa-star"></i>
+                                            Best Seller
+                                        </div>
+                                    </div>
+
+                                    <div class="product-info">
+                                        <div class="product-category">
+                                            <?php echo htmlspecialchars($product['category_name'] ?? 'Product'); ?>
+                                        </div>
+
+                                        <div class="product-rating">
+                                            <div class="rating-stars">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                            <span class="rating-number">4.6</span>
+                                        </div>
+
+                                        <h3 class="product-name">
+                                            <?php echo htmlspecialchars($product['name']); ?>
+                                        </h3>
+
+                                        <div class="product-description">
+                                            <?php
+                                            $description = $product['description'] ?? '';
+                                            echo htmlspecialchars(strlen($description) > 80 ? substr($description, 0, 80) . '...' : $description);
+                                            ?>
+                                        </div>
+
+                                        <div class="product-price">
+                                            <?php
+                                            $basePrice = $product['price'] ?? 0;
+                                            $originalPrice = $basePrice * 1.43; // Calculate original price (30% discount)
+                                            ?>
+                                            <span class="price-current">From ₹ <?php echo number_format($basePrice, 2); ?></span>
+                                            <span class="price-original">₹ <?php echo number_format($originalPrice, 2); ?></span>
+                                        </div>
+
+                                        <div class="product-actions">
+                                            <button class="view-details-btn">View Details</button>
+                                        </div>
+                                    </div>
                                 </div>
-                            <?php endif; ?>
-
-                            <div class="best-seller-badge">
-                                <i class="fas fa-star"></i>
-                                Best Seller
                             </div>
-                        </div>
-
-                        <div class="product-info">
-                            <div class="product-category">
-                                <?php echo htmlspecialchars($product['category_name'] ?? 'Product'); ?>
-                            </div>
-
-                            <div class="product-rating">
-                                <div class="rating-stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <span class="rating-number">4.6</span>
-                            </div>
-
-                            <h3 class="product-name">
-                                <?php echo htmlspecialchars($product['name']); ?>
-                            </h3>
-
-                            <div class="product-price">
-                                <?php
-                                $basePrice = $product['price'] ?? 0;
-                                $originalPrice = $basePrice * 1.43; // Calculate original price (30% discount)
-                                ?>
-                                <span class="price-current">From ₹ <?php echo number_format($basePrice, 2); ?></span>
-                                <span class="price-original">₹ <?php echo number_format($originalPrice, 2); ?></span>
-                            </div>
-
-                            <div class="product-actions">
-                                <button class="view-details-btn">View Details</button>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
+                </div>
+
+                <!-- Pagination Dots -->
+                <div class="slider-pagination" id="bestSellerPagination">
+                    <?php
+                    $totalSlides = count($bestSellerProducts);
+                    $slidesPerView = 4; // Default for desktop
+                    $totalPages = ceil($totalSlides / $slidesPerView);
+                    for ($i = 0; $i < $totalPages; $i++):
+                    ?>
+                        <button class="pagination-dot <?php echo $i === 0 ? 'active' : ''; ?>"
+                                data-slide="<?php echo $i; ?>"
+                                aria-label="Go to slide <?php echo $i + 1; ?>"></button>
+                    <?php endfor; ?>
+                </div>
             </div>
 
             <div class="view-all-container">
@@ -1184,15 +1221,123 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
     border-bottom: 1px solid #999999;
 }
 
-.best-seller-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+/* Best Seller Slider Styles */
+.best-seller-slider-container {
+    position: relative;
     margin-top: 2rem;
-    max-width: 1000px;
+    max-width: 1400px;
     margin-left: auto;
     margin-right: auto;
-    padding: 0 1rem;
+    padding: 0 60px;
+    overflow: hidden;
+}
+
+.best-seller-slider-wrapper {
+    overflow: hidden;
+    border-radius: 12px;
+    position: relative;
+}
+
+.best-seller-slider-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+}
+
+.product-slide {
+    flex: 0 0 25%; /* 4 slides per view on desktop */
+    padding: 0 25px;
+    box-sizing: border-box;
+}
+
+/* Navigation Buttons */
+.slider-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #e0e0e0;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.slider-nav-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: #333;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.slider-nav-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.slider-prev {
+    left: 10px;
+}
+
+.slider-next {
+    right: 10px;
+}
+
+.slider-nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: translateY(-50%) scale(0.9);
+}
+
+/* Pagination Dots */
+.slider-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 2rem;
+    padding: 1rem 0;
+}
+
+.pagination-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    background: #d0d0d0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.pagination-dot:hover {
+    background: #999;
+    transform: scale(1.2);
+}
+
+.pagination-dot.active {
+    background: #333;
+    transform: scale(1.3);
+}
+
+.pagination-dot.active::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid #333;
+    border-radius: 50%;
+    opacity: 0.3;
 }
 
 .product-card {
@@ -1221,7 +1366,7 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem;
+    padding: 0rem;
     border-bottom: none;
 }
 
@@ -1310,6 +1455,18 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
     color: #333;
     margin-bottom: 0.5rem;
     line-height: 1.3;
+}
+
+.product-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.8rem;
+    line-height: 1.4;
+    min-height: 2.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .product-price {
@@ -1430,14 +1587,25 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
     text-decoration: none;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .best-seller-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.8rem;
-        max-width: 800px;
+/* Responsive Design for Best Seller Slider */
+@media (max-width: 1200px) {
+    .product-slide {
+        flex: 0 0 33.333%; /* 3 slides per view on tablets */
+        padding: 0 22px;
     }
 
+    .best-seller-slider-container {
+        padding: 0 50px;
+    }
+
+    .slider-nav-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 1024px) {
     .featured-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
@@ -1446,11 +1614,27 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
 }
 
 @media (max-width: 768px) {
-    .best-seller-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.8rem;
-        padding: 0 0.5rem;
-        max-width: 600px;
+    .product-slide {
+        flex: 0 0 50%; /* 2 slides per view on mobile */
+        padding: 0 18px;
+    }
+
+    .best-seller-slider-container {
+        padding: 0 40px;
+    }
+
+    .slider-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .slider-prev {
+        left: 5px;
+    }
+
+    .slider-next {
+        right: 5px;
     }
 
     .featured-grid {
@@ -1492,13 +1676,35 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
         padding: 0.5rem 0.8rem;
         font-size: 0.8rem;
     }
+
+    .pagination-dot {
+        width: 10px;
+        height: 10px;
+    }
 }
 
 @media (max-width: 480px) {
-    .best-seller-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        max-width: 300px;
+    .product-slide {
+        flex: 0 0 100%; /* 1 slide per view on very small screens */
+        padding: 0 20px;
+    }
+
+    .best-seller-slider-container {
+        padding: 0 35px;
+    }
+
+    .slider-nav-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+    }
+
+    .slider-prev {
+        left: 2px;
+    }
+
+    .slider-next {
+        right: 2px;
     }
 
     .featured-grid {
@@ -1523,6 +1729,16 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
 
     .product-description {
         font-size: 0.75rem;
+    }
+
+    .pagination-dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    .slider-pagination {
+        gap: 8px;
+        margin-top: 1.5rem;
     }
 }
 </style>
@@ -1684,5 +1900,314 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 5000);
         }
     }
+
+    // Best Seller Slider functionality
+    initBestSellerSlider();
 });
+
+// Best Seller Slider Implementation
+function initBestSellerSlider() {
+    const sliderTrack = document.getElementById('bestSellerSliderTrack');
+    const sliderWrapper = document.getElementById('bestSellerSliderWrapper');
+    const prevBtn = document.getElementById('bestSellerPrev');
+    const nextBtn = document.getElementById('bestSellerNext');
+    const paginationContainer = document.getElementById('bestSellerPagination');
+
+    if (!sliderTrack || !sliderWrapper) return;
+
+    const slides = sliderTrack.querySelectorAll('.product-slide');
+    const totalSlides = slides.length;
+
+    let currentIndex = 0;
+    let slidesPerView = getSlidesPerView();
+    let totalPages = Math.ceil(totalSlides / slidesPerView);
+    let autoSlideInterval;
+    let isAutoSliding = true;
+
+    // Get slides per view based on screen size
+    function getSlidesPerView() {
+        const width = window.innerWidth;
+        if (width <= 480) return 1;
+        if (width <= 768) return 2;
+        if (width <= 1200) return 3;
+        return 4;
+    }
+
+    // Update slider position
+    function updateSlider() {
+        const slideWidth = 100 / slidesPerView;
+        const translateX = -(currentIndex * slideWidth);
+        sliderTrack.style.transform = `translateX(${translateX}%)`;
+
+        // Update pagination
+        updatePagination();
+
+        // Update navigation buttons
+        updateNavigationButtons();
+    }
+
+    // Update pagination dots
+    function updatePagination() {
+        if (!paginationContainer) return;
+
+        const dots = paginationContainer.querySelectorAll('.pagination-dot');
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === Math.floor(currentIndex / slidesPerView));
+        });
+    }
+
+    // Update navigation button states
+    function updateNavigationButtons() {
+        if (prevBtn) {
+            prevBtn.disabled = currentIndex === 0;
+        }
+        if (nextBtn) {
+            nextBtn.disabled = currentIndex >= totalSlides - slidesPerView;
+        }
+    }
+
+    // Go to next slide
+    function nextSlide() {
+        if (currentIndex < totalSlides - slidesPerView) {
+            currentIndex += slidesPerView;
+            if (currentIndex > totalSlides - slidesPerView) {
+                currentIndex = totalSlides - slidesPerView;
+            }
+        } else {
+            currentIndex = 0; // Loop back to start
+        }
+        updateSlider();
+    }
+
+    // Go to previous slide
+    function prevSlide() {
+        if (currentIndex > 0) {
+            currentIndex -= slidesPerView;
+            if (currentIndex < 0) {
+                currentIndex = 0;
+            }
+        } else {
+            currentIndex = totalSlides - slidesPerView; // Loop to end
+        }
+        updateSlider();
+    }
+
+    // Go to specific slide
+    function goToSlide(slideIndex) {
+        currentIndex = slideIndex * slidesPerView;
+        if (currentIndex > totalSlides - slidesPerView) {
+            currentIndex = totalSlides - slidesPerView;
+        }
+        updateSlider();
+    }
+
+    // Auto-advance functionality
+    function startAutoSlide() {
+        if (autoSlideInterval) clearInterval(autoSlideInterval);
+        autoSlideInterval = setInterval(() => {
+            if (isAutoSliding) {
+                nextSlide();
+            }
+        }, 4000); // 4 seconds interval
+    }
+
+    function stopAutoSlide() {
+        if (autoSlideInterval) {
+            clearInterval(autoSlideInterval);
+            autoSlideInterval = null;
+        }
+    }
+
+    // Event listeners
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            nextSlide();
+            stopAutoSlide();
+            setTimeout(startAutoSlide, 2000); // Restart auto-slide after 2 seconds
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            prevSlide();
+            stopAutoSlide();
+            setTimeout(startAutoSlide, 2000);
+        });
+    }
+
+    // Pagination click events
+    if (paginationContainer) {
+        paginationContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('pagination-dot')) {
+                const slideIndex = parseInt(e.target.dataset.slide);
+                goToSlide(slideIndex);
+                stopAutoSlide();
+                setTimeout(startAutoSlide, 2000);
+            }
+        });
+    }
+
+    // Pause auto-slide on hover
+    if (sliderWrapper) {
+        sliderWrapper.addEventListener('mouseenter', () => {
+            isAutoSliding = false;
+        });
+
+        sliderWrapper.addEventListener('mouseleave', () => {
+            isAutoSliding = true;
+        });
+    }
+
+    // Handle window resize
+    function handleResize() {
+        const newSlidesPerView = getSlidesPerView();
+        if (newSlidesPerView !== slidesPerView) {
+            slidesPerView = newSlidesPerView;
+            totalPages = Math.ceil(totalSlides / slidesPerView);
+
+            // Reset to first slide if current position is invalid
+            if (currentIndex >= totalSlides - slidesPerView) {
+                currentIndex = Math.max(0, totalSlides - slidesPerView);
+            }
+
+            // Update pagination dots
+            updatePaginationDots();
+            updateSlider();
+        }
+    }
+
+    // Update pagination dots based on new slides per view
+    function updatePaginationDots() {
+        if (!paginationContainer) return;
+
+        paginationContainer.innerHTML = '';
+        const newTotalPages = Math.ceil(totalSlides / slidesPerView);
+
+        for (let i = 0; i < newTotalPages; i++) {
+            const dot = document.createElement('button');
+            dot.className = `pagination-dot ${i === 0 ? 'active' : ''}`;
+            dot.dataset.slide = i;
+            dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+            paginationContainer.appendChild(dot);
+        }
+    }
+
+    // Touch/Swipe support for mobile devices
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let touchStartY = 0;
+    let touchEndY = 0;
+    let isSwiping = false;
+
+    function handleTouchStart(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isSwiping = false;
+
+        // Pause auto-slide during touch
+        isAutoSliding = false;
+    }
+
+    function handleTouchMove(e) {
+        if (!touchStartX || !touchStartY) return;
+
+        const touchCurrentX = e.touches[0].clientX;
+        const touchCurrentY = e.touches[0].clientY;
+
+        const diffX = Math.abs(touchCurrentX - touchStartX);
+        const diffY = Math.abs(touchCurrentY - touchStartY);
+
+        // If horizontal swipe is more significant than vertical, prevent default scrolling
+        if (diffX > diffY && diffX > 10) {
+            e.preventDefault();
+            isSwiping = true;
+        }
+    }
+
+    function handleTouchEnd(e) {
+        if (!touchStartX || !isSwiping) {
+            // Resume auto-slide if not swiping
+            isAutoSliding = true;
+            return;
+        }
+
+        touchEndX = e.changedTouches[0].clientX;
+        touchEndY = e.changedTouches[0].clientY;
+
+        const diffX = touchStartX - touchEndX;
+        const diffY = Math.abs(touchStartY - touchEndY);
+
+        // Minimum swipe distance and ensure horizontal swipe
+        const minSwipeDistance = 50;
+
+        if (Math.abs(diffX) > minSwipeDistance && Math.abs(diffX) > diffY) {
+            if (diffX > 0) {
+                // Swiped left - go to next slide
+                nextSlide();
+            } else {
+                // Swiped right - go to previous slide
+                prevSlide();
+            }
+
+            // Stop auto-slide temporarily after manual swipe
+            stopAutoSlide();
+            setTimeout(startAutoSlide, 3000);
+        }
+
+        // Reset touch values
+        touchStartX = 0;
+        touchEndX = 0;
+        touchStartY = 0;
+        touchEndY = 0;
+        isSwiping = false;
+
+        // Resume auto-slide
+        setTimeout(() => {
+            isAutoSliding = true;
+        }, 100);
+    }
+
+    // Add touch event listeners
+    if (sliderWrapper) {
+        sliderWrapper.addEventListener('touchstart', handleTouchStart, { passive: false });
+        sliderWrapper.addEventListener('touchmove', handleTouchMove, { passive: false });
+        sliderWrapper.addEventListener('touchend', handleTouchEnd, { passive: false });
+    }
+
+    // Keyboard navigation support
+    function handleKeyDown(e) {
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            prevSlide();
+            stopAutoSlide();
+            setTimeout(startAutoSlide, 2000);
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            nextSlide();
+            stopAutoSlide();
+            setTimeout(startAutoSlide, 2000);
+        }
+    }
+
+    // Add keyboard event listener when slider is focused
+    if (sliderWrapper) {
+        sliderWrapper.setAttribute('tabindex', '0');
+        sliderWrapper.addEventListener('keydown', handleKeyDown);
+
+        // Add focus styles
+        sliderWrapper.addEventListener('focus', () => {
+            sliderWrapper.style.outline = '2px solid #007bff';
+            sliderWrapper.style.outlineOffset = '2px';
+        });
+
+        sliderWrapper.addEventListener('blur', () => {
+            sliderWrapper.style.outline = 'none';
+        });
+    }
+
+    // Initialize
+    window.addEventListener('resize', handleResize);
+    updateSlider();
+    startAutoSlide();
+}
 </script>
