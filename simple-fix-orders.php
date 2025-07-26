@@ -23,23 +23,18 @@ if (isset($_POST['fix_order_id'])) {
         echo "<p><strong>Order:</strong> {$order['order_number']} - {$order['first_name']} {$order['last_name']}</p>";
         echo "<p><strong>Amount:</strong> ₹{$order['total_amount']}</p>";
         
-        // Get a real product_id to satisfy foreign key constraint
-        $stmt = $pdo->prepare("SELECT product_id, name FROM products LIMIT 1");
-        $stmt->execute();
-        $sampleProduct = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$sampleProduct) {
-            throw new Exception("No products found in database. Cannot create recovered item.");
-        }
+        // Use the first product from your database (Pcos Balance)
+        $recovery_product_id = '07240ca09e34ce3dc9500eb0f0feea7f';
+        $recovery_product_name = 'Pcos Balance';
 
         // Create a recovered item using real product_id
         $item_id = bin2hex(random_bytes(16));
-        $product_name = "Order Items (Recovered) - " . $sampleProduct['name'];
+        $product_name = "Order Items (Recovered) - " . $recovery_product_name;
         $quantity = 1;
         $price = $order['total_amount'];
         $total = $order['total_amount'];
 
-        // Insert the recovered item
+        // Insert the recovered item (without variant_id to avoid foreign key issues)
         $stmt = $pdo->prepare("
             INSERT INTO order_items (
                 order_item_id, order_id, product_id, product_name,
@@ -48,7 +43,7 @@ if (isset($_POST['fix_order_id'])) {
         ");
 
         $result = $stmt->execute([
-            $item_id, $fix_order_id, $sampleProduct['product_id'], $product_name,
+            $item_id, $fix_order_id, $recovery_product_id, $product_name,
             $quantity, $price, $total, $price, $total, $order['created_at']
         ]);
         

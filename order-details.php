@@ -30,9 +30,8 @@ try {
     
     // Get order items
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             oi.*,
-            p.image_url,
             p.description
         FROM order_items oi
         LEFT JOIN products p ON oi.product_id = p.product_id
@@ -354,8 +353,8 @@ include 'includes/header.php';
                 <?php else: ?>
                     <?php foreach ($orderItems as $item): ?>
                         <div class="item-card">
-                            <img src="<?php echo htmlspecialchars($item['image_url'] ?? 'assets/images/placeholder.jpg'); ?>" 
-                                 alt="<?php echo htmlspecialchars($item['product_name']); ?>" 
+                            <img src="assets/images/placeholder.jpg"
+                                 alt="<?php echo htmlspecialchars($item['product_name']); ?>"
                                  class="item-image">
                             
                             <div class="item-details">

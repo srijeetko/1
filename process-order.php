@@ -168,7 +168,7 @@ try {
             $orderItems[] = [
                 'product_id' => $product_id,
                 'product_name' => $product['name'],
-                'variant_id' => $variant_id,
+                'variant_id' => ($variant_id && $variant_id !== 'default') ? $variant_id : null,
                 'variant_name' => null, // Will be populated if variants are implemented
                 'price' => $price,
                 'quantity' => $quantity,
@@ -226,6 +226,17 @@ try {
         $item_id = bin2hex(random_bytes(16));
 
         try {
+            // Handle variant_id - only insert if it's a valid variant, otherwise use NULL
+            $final_variant_id = null;
+            if ($item['variant_id'] && $item['variant_id'] !== 'default') {
+                // Check if variant exists in database
+                $stmt_check = $pdo->prepare("SELECT variant_id FROM product_variants WHERE variant_id = ?");
+                $stmt_check->execute([$item['variant_id']]);
+                if ($stmt_check->fetchColumn()) {
+                    $final_variant_id = $item['variant_id'];
+                }
+            }
+
             $stmt = $pdo->prepare("
                 INSERT INTO order_items (
                     order_item_id, order_id, product_id, product_name, variant_id,
@@ -235,7 +246,7 @@ try {
 
             $result = $stmt->execute([
                 $item_id, $order_id, $item['product_id'], $item['product_name'],
-                $item['variant_id'], $item['variant_name'] ?? null, $item['quantity'],
+                $final_variant_id, $item['variant_name'] ?? null, $item['quantity'],
                 $item['price'], $item['total'], $item['price'], $item['total']
             ]);
 

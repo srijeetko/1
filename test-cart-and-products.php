@@ -16,7 +16,7 @@ try {
     echo "<p><strong>Total products:</strong> $productCount</p>";
     
     if ($productCount > 0) {
-        $stmt = $pdo->prepare("SELECT product_id, name, price, image_url FROM products LIMIT 5");
+        $stmt = $pdo->prepare("SELECT product_id, name, price FROM products LIMIT 5");
         $stmt->execute();
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         

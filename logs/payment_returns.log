@@ -8,3 +8,8 @@
 2025-07-26 11:20:39 - PAYMENT_RETURN - Database lookup - Order found: No
 2025-07-26 11:20:39 - PAYMENT_RETURN - CRITICAL - Payment successful but order missing: ORD-20250726-B458CC
 2025-07-26 11:20:39 - PAYMENT_RETURN - RECOVERY SUCCESS - Original: ORD-20250726-B458CC, New: e541edcc2ae3097a75bda5fbdad9b8c2
+2025-07-26 12:13:25 - PAYMENT_RETURN - Order ID received: ORD-20250726-E54C99
+2025-07-26 12:13:26 - PAYMENT_RETURN - Cashfree status retrieved: {"cart_details":null,"cf_order_id":"4474752369","created_at":"2025-07-26T17:42:26+05:30","customer_details":{"customer_id":"d387cbb2-c1e7-4de5-9641-566578c801d1","customer_name":"Srijeet Shikalgar","customer_email":"srijeetshikalgar00@mail.com","customer_phone":"8208593432","customer_uid":null},"entity":"order","order_amount":1,"order_currency":"INR","order_expiry_time":"2025-08-25T17:42:26+05:30","order_id":"ORD-20250726-E54C99","order_meta":{"return_url":"https:\/\/a434bcdcbe75.ngrok-free.app\/1\/payment-return.php?order_id={order_id}","notify_url":null,"payment_methods":null},"order_note":null,"order_splits":[],"order_status":"PAID","order_tags":null,"payment_session_id":"session_SvwXjN_88sVwIlFsVBA1SNprqBALVRrv_evKbaCxt22su8txr-runN-Ok6FABkkrDk_5DH3BOzjBfGuQaJVt5Vr-sIGndw-uklRgVRN-L0dFm646HR4XZj10CWQpayment","terminal_data":null}
+2025-07-26 12:13:26 - PAYMENT_RETURN - Database lookup - Order found: No
+2025-07-26 12:13:26 - PAYMENT_RETURN - CRITICAL - Payment successful but order missing: ORD-20250726-E54C99
+2025-07-26 12:13:26 - PAYMENT_RETURN - RECOVERY SUCCESS - Original: ORD-20250726-E54C99, New: fb4d70c04a1b5c1538da6cbc6aea7ffb
