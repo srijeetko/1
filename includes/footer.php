@@ -27,10 +27,6 @@
                     <ul>
                         <li><a href="about-us.php">About Us</a></li>
                         <li><a href="blog.php">Blog</a></li>
-                        <li><a href="terms-conditions.php">Terms And Conditions</a></li>
-                        <li><a href="privacy-policy.php">Privacy Policy</a></li>
-                        <li><a href="refund-cancellation-policy.php">Refund & Cancellation Policy</a></li>
-                        <li><a href="shipping-policy.php">Shipping Policy</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -48,11 +44,6 @@
                 <div class="footer-bottom-content">
                     <p>&copy; <?php echo date('Y'); ?> ALPHA NUTRITION (Pure Nutrition Co.). ALL RIGHTS RESERVED.</p>
                     <p class="company-info">Sangli, India | Email: <a href="mailto:support@purenutritionco.com">support@purenutritionco.com</a> | Phone: <a href="tel:+919022975030">+91 9022975030</a></p>
-                    <p class="privacy-links">
-                        <a href="privacy-policy.php">Privacy Policy</a> |
-                        <a href="terms-conditions.php">Terms of Service</a> |
-                        <a href="refund-cancellation-policy.php">Refund Policy</a>
-                    </p>
                 </div>
             </div>
         </div>
