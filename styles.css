@@ -66,7 +66,7 @@ body {
 
 .header.scrolled {
     background: rgba(238, 236, 236, 0.95);
-    color: white;
+    color: rgb(12, 12, 12);
     border-bottom: 1px solid #333;
 }
 
