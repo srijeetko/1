@@ -1829,10 +1829,6 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
                     <img src="assets/Gmp black.png" alt="GMP Certified" style="width: 150px; height: auto;">
                 </div>
             </div>
-            <div class="cert-item animate-on-scroll">
-                <div class="cert-icon">
-                    <img src="assets/Halal black.png" alt="Halal Certified" style="width: 150px; height: auto;">
-                </div>
             </div>
             <div class="cert-item animate-on-scroll">
                 <div class="cert-icon">

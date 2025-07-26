@@ -1,7 +1,14 @@
 <?php
 // Cashfree Configuration
 
-// Auto-detect environment based on host
+// Force production mode - using real Cashfree API even during development
+// Production credentials - ALWAYS USED
+define('CASHFREE_APP_ID', '667364de1dbc524e0b260a7c3c463766');
+define('CASHFREE_SECRET_KEY', 'cfsk_ma_prod_6331e813da65e12110f3edc596329a3d_2879154f');
+define('CASHFREE_API_ENV', 'PROD');
+
+/*
+// Uncomment this section if you want to use test/sandbox mode
 $isLocalhost = (isset($_SERVER['HTTP_HOST']) &&
     (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false ||
      strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false ||
@@ -18,6 +25,7 @@ if ($isLocalhost) {
     define('CASHFREE_SECRET_KEY', 'cfsk_ma_prod_6331e813da65e12110f3edc596329a3d_2879154f');
     define('CASHFREE_API_ENV', 'PROD');
 }
+*/
 define('CASHFREE_CURRENCY', 'INR');
 define('CASHFREE_COMPANY_NAME', 'Alpha Nutrition');
 
@@ -29,15 +37,9 @@ define('CASHFREE_API_BASE_URL', CASHFREE_API_ENV === 'TEST'
 // API Version
 define('CASHFREE_API_VERSION', '2023-08-01');
 
-// Base URL for return and webhook URLs (must be HTTPS for production)
-if ($isLocalhost) {
-    // For local development with TEST environment, we can use HTTP
-    // But if you want to test with PROD credentials locally, use ngrok
-    define('CASHFREE_BASE_URL', 'http://localhost'); // Works with TEST environment
+// Base URL for return and webhook URLs (HTTPS required for production API)
+// Update this with your ngrok HTTPS URL when testing
+define('CASHFREE_BASE_URL', 'https://a434bcdcbe75.ngrok-free.app/1'); // Replace with your actual ngrok URL
 
-    // Uncomment and update the line below if using ngrok for local PROD testing:
-    // define('CASHFREE_BASE_URL', 'https://your-ngrok-url.ngrok.io');
-} else {
-    // Production environment - use your actual domain
-    define('CASHFREE_BASE_URL', 'https://your-domain.com'); // Update with your actual domain
-}
+// Ngrok bypass header for API requests
+define('NGROK_BYPASS_HEADER', 'ngrok-skip-browser-warning');

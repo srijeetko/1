@@ -1,16 +1,57 @@
 <?php
 session_start();
+require_once 'includes/db_connection.php';
 
-// Check if order success data exists
-if (!isset($_SESSION['order_success'])) {
-    header('Location: index.php');
-    exit();
+// Get order ID from URL parameter or session
+$order_id = $_GET['order_id'] ?? null;
+$recovered = $_GET['recovered'] ?? false;
+
+if (!$order_id) {
+    // Fallback to session data if available
+    if (isset($_SESSION['order_success'])) {
+        $orderData = $_SESSION['order_success'];
+        unset($_SESSION['order_success']);
+    } else {
+        header('Location: index.php');
+        exit();
+    }
+} else {
+    // Get order data from database
+    try {
+        $stmt = $pdo->prepare("
+            SELECT
+                co.*,
+                pt.transaction_status,
+                pt.payment_gateway
+            FROM checkout_orders co
+            LEFT JOIN payment_transactions pt ON co.order_id = pt.order_id
+            WHERE co.order_id = ?
+        ");
+        $stmt->execute([$order_id]);
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$order) {
+            throw new Exception('Order not found');
+        }
+
+        // Convert to expected format
+        $orderData = [
+            'order_id' => $order['order_id'],
+            'order_number' => $order['order_number'],
+            'customer_name' => $order['first_name'] . ' ' . $order['last_name'],
+            'email' => $order['email'],
+            'phone' => $order['phone'],
+            'payment_method' => $order['payment_method'],
+            'total_amount' => $order['total_amount'],
+            'order_status' => $order['order_status'],
+            'payment_status' => $order['payment_status']
+        ];
+
+    } catch (Exception $e) {
+        header('Location: index.php?error=' . urlencode($e->getMessage()));
+        exit();
+    }
 }
-
-$orderData = $_SESSION['order_success'];
-
-// Clear the session data after retrieving it
-unset($_SESSION['order_success']);
 
 $pageTitle = "Order Confirmation - Alpha Nutrition";
 include 'includes/header.php';
@@ -50,6 +91,45 @@ include 'includes/header.php';
     50% { transform: scale(1.05); }
     100% { transform: scale(1); }
 }
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes confetti {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.success-card {
+    animation: slideInUp 0.8s ease-out;
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background: #f39c12;
+    animation: confetti 3s linear infinite;
+    z-index: 1000;
+}
+
+.confetti:nth-child(1) { left: 10%; animation-delay: 0s; background: #e74c3c; }
+.confetti:nth-child(2) { left: 20%; animation-delay: 0.2s; background: #3498db; }
+.confetti:nth-child(3) { left: 30%; animation-delay: 0.4s; background: #2ecc71; }
+.confetti:nth-child(4) { left: 40%; animation-delay: 0.6s; background: #f39c12; }
+.confetti:nth-child(5) { left: 50%; animation-delay: 0.8s; background: #9b59b6; }
+.confetti:nth-child(6) { left: 60%; animation-delay: 1s; background: #e67e22; }
+.confetti:nth-child(7) { left: 70%; animation-delay: 1.2s; background: #1abc9c; }
+.confetti:nth-child(8) { left: 80%; animation-delay: 1.4s; background: #e91e63; }
+.confetti:nth-child(9) { left: 90%; animation-delay: 1.6s; background: #34495e; }
 
 .success-title {
     font-size: 2.5em;
@@ -237,14 +317,37 @@ include 'includes/header.php';
 }
 </style>
 
+<!-- Confetti Animation -->
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+<div class="confetti"></div>
+
 <div class="success-container">
     <div class="success-card">
         <div class="success-icon">
             <i class="fas fa-check"></i>
         </div>
         
-        <h1 class="success-title">Order Placed Successfully!</h1>
-        <p class="success-subtitle">Thank you for your order. We'll process it shortly and keep you updated.</p>
+        <h1 class="success-title">
+            <?php if ($recovered): ?>
+                Order Recovered Successfully! 🎉
+            <?php else: ?>
+                Order Placed Successfully! 🎉
+            <?php endif; ?>
+        </h1>
+        <p class="success-subtitle">
+            <?php if ($recovered): ?>
+                Your payment was successful and we've recovered your order details. Thank you for your patience!
+            <?php else: ?>
+                Thank you for your order. We'll process it shortly and keep you updated.
+            <?php endif; ?>
+        </p>
         
         <div class="order-details">
             <h3><i class="fas fa-receipt"></i> Order Details</h3>
@@ -307,14 +410,20 @@ include 'includes/header.php';
         <?php endif; ?>
         
         <div class="action-buttons">
-            <a href="index.php" class="btn btn-primary">
+            <a href="order-details.php?order_id=<?php echo urlencode($orderData['order_id']); ?>" class="btn btn-primary">
+                <i class="fas fa-receipt"></i>
+                View Order Details
+            </a>
+            <a href="index.php" class="btn btn-secondary">
                 <i class="fas fa-home"></i>
                 Continue Shopping
             </a>
-            <a href="my-orders.php" class="btn btn-secondary">
-                <i class="fas fa-list"></i>
-                View My Orders
-            </a>
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <a href="my-orders.php" class="btn btn-secondary">
+                    <i class="fas fa-list"></i>
+                    View All Orders
+                </a>
+            <?php endif; ?>
         </div>
         
         <div class="contact-info">

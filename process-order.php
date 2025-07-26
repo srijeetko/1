@@ -169,6 +169,7 @@ try {
                 'product_id' => $product_id,
                 'product_name' => $product['name'],
                 'variant_id' => $variant_id,
+                'variant_name' => null, // Will be populated if variants are implemented
                 'price' => $price,
                 'quantity' => $quantity,
                 'total' => $itemTotal
@@ -220,19 +221,52 @@ try {
     // Log order creation for debugging
     error_log("Order created - ID: $order_id, Number: $order_number, Amount: $totalAmount, Result: " . ($result ? 'Success' : 'Failed'));
     
-    // Insert order items
+    // Insert order items with error checking
     foreach ($orderItems as $item) {
         $item_id = bin2hex(random_bytes(16));
-        $stmt = $pdo->prepare("
-            INSERT INTO order_items (
-                order_item_id, order_id, product_id, product_name, variant_id, price, quantity, total
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ");
 
-        $stmt->execute([
-            $item_id, $order_id, $item['product_id'], $item['product_name'],
-            $item['variant_id'], $item['price'], $item['quantity'], $item['total']
-        ]);
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO order_items (
+                    order_item_id, order_id, product_id, product_name, variant_id,
+                    variant_name, quantity, unit_price, total_price, price, total, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+
+            $result = $stmt->execute([
+                $item_id, $order_id, $item['product_id'], $item['product_name'],
+                $item['variant_id'], $item['variant_name'] ?? null, $item['quantity'],
+                $item['price'], $item['total'], $item['price'], $item['total']
+            ]);
+
+            if (!$result) {
+                throw new Exception("Failed to insert order item: " . $item['product_name']);
+            }
+
+            // Log successful item insertion
+            error_log("Order item inserted - Product: {$item['product_name']}, Qty: {$item['quantity']}, Price: {$item['price']}, Total: {$item['total']}");
+
+        } catch (Exception $e) {
+            // Log the error but continue with other items
+            error_log("Order item insertion failed - Product: {$item['product_name']}, Error: " . $e->getMessage());
+
+            // Log to specific file for better tracking
+            $logEntry = date('Y-m-d H:i:s') . " - ORDER_ITEM_ERROR - Order: $order_id, Product: {$item['product_name']}, Error: " . $e->getMessage() . "\n";
+            file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
+        }
+    }
+
+    // Verify order items were inserted
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = ?");
+    $stmt->execute([$order_id]);
+    $itemCount = $stmt->fetchColumn();
+
+    if ($itemCount == 0) {
+        error_log("WARNING: No order items were inserted for order $order_id");
+        $logEntry = date('Y-m-d H:i:s') . " - ORDER_ITEMS_MISSING - Order: $order_id, Expected: " . count($orderItems) . ", Actual: 0\n";
+        file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
+    } else {
+        error_log("Order items verification - Order: $order_id, Items inserted: $itemCount");
     }
     
     // Save address to user account if requested and user is logged in
@@ -282,12 +316,12 @@ try {
         $stmt->execute([$transaction_id, $order_id, $totalAmount]);
         
     } else if ($paymentMethod === 'cashfree') {
-        // Create Cashfree order
+        // Create Cashfree order with enhanced error handling
         require_once 'includes/cashfree-handler.php';
         $cashfreeHandler = new CashfreeHandler($pdo);
 
         try {
-            // Create transaction record
+            // Create transaction record FIRST
             $transaction_id = bin2hex(random_bytes(16));
             $stmt = $pdo->prepare("
                 INSERT INTO payment_transactions (
@@ -297,8 +331,12 @@ try {
             ");
             $stmt->execute([$transaction_id, $order_id, $totalAmount]);
 
-            // Log for debugging
+            // Enhanced logging for debugging
             error_log("Cashfree: Created transaction record - ID: $transaction_id, Order: $order_id, Amount: $totalAmount");
+
+            // Log to specific file for better tracking
+            $logEntry = date('Y-m-d H:i:s') . " - ORDER_CREATION - Transaction created - Order: $order_id, Transaction: $transaction_id, Amount: $totalAmount\n";
+            file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
 
             // Prepare order data for Cashfree
             $orderData = [
@@ -317,11 +355,32 @@ try {
 
             $cashfreeOrder = $cashfreeHandler->createOrder($orderData);
 
-            // Log successful order creation
+            // Validate Cashfree response
+            if (!$cashfreeOrder || !isset($cashfreeOrder['payment_session_id'])) {
+                throw new Exception('Cashfree order creation failed - no payment session ID received');
+            }
+
+            // Update transaction with Cashfree order details
+            $stmt = $pdo->prepare("
+                UPDATE payment_transactions
+                SET gateway_transaction_id = ?, gateway_response = ?
+                WHERE transaction_id = ?
+            ");
+            $stmt->execute([
+                $cashfreeOrder['order_id'] ?? $order_number,
+                json_encode($cashfreeOrder),
+                $transaction_id
+            ]);
+
+            // Enhanced logging for successful order creation
             error_log("Cashfree: Order created successfully - " . json_encode($cashfreeOrder));
+            $logEntry = date('Y-m-d H:i:s') . " - ORDER_CREATION - Cashfree order created successfully - Order: $order_id, Cashfree ID: " . ($cashfreeOrder['order_id'] ?? 'unknown') . "\n";
+            file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
 
             // Clear any output buffer to prevent JSON corruption
-            ob_clean();
+            if (ob_get_level()) {
+                ob_clean();
+            }
 
             // Send order details to client (updated for API v3)
             header('Content-Type: application/json');
@@ -338,6 +397,24 @@ try {
             ]);
             exit;
         } catch (Exception $e) {
+            // Enhanced error logging and cleanup
+            error_log("Cashfree order creation failed: " . $e->getMessage());
+            $logEntry = date('Y-m-d H:i:s') . " - ORDER_CREATION_FAILED - Order: $order_id, Error: " . $e->getMessage() . "\n";
+            file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
+
+            // Clean up - delete the order and transaction records since payment failed
+            try {
+                $stmt = $pdo->prepare("DELETE FROM payment_transactions WHERE order_id = ?");
+                $stmt->execute([$order_id]);
+
+                $stmt = $pdo->prepare("DELETE FROM checkout_orders WHERE order_id = ?");
+                $stmt->execute([$order_id]);
+
+                error_log("Cashfree: Cleaned up failed order records for order_id: $order_id");
+            } catch (Exception $cleanupError) {
+                error_log("Cashfree: Failed to cleanup order records: " . $cleanupError->getMessage());
+            }
+
             throw new Exception('Payment initialization failed: ' . $e->getMessage());
         }
     } else if ($paymentMethod === 'razorpay') {
