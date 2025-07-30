@@ -43,7 +43,6 @@
             <div class="footer-bottom">
                 <div class="footer-bottom-content">
                     <p>&copy; <?php echo date('Y'); ?> ALPHA NUTRITION (Pure Nutrition Co.). ALL RIGHTS RESERVED.</p>
-                    <p class="company-info">Sangli, India | Email: <a href="mailto:support@purenutritionco.com">support@purenutritionco.com</a> | Phone: <a href="tel:+919022975030">+91 9022975030</a></p>
                 </div>
             </div>
         </div>

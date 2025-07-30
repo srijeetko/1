@@ -145,23 +145,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Handle variants
         $totalStock = 0;
         if (isset($_POST['variants'])) {
-            // Delete existing variants
-            $stmt = $pdo->prepare('DELETE FROM product_variants WHERE product_id = ?');
+            // Get existing variants for this product
+            $stmt = $pdo->prepare('SELECT variant_id, size, price_modifier, stock FROM product_variants WHERE product_id = ?');
             $stmt->execute([$productId]);
+            $existingVariants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Add new variants
+            // Create a map of existing variants by size for easy lookup
+            $existingVariantMap = [];
+            foreach ($existingVariants as $variant) {
+                $existingVariantMap[$variant['size']] = $variant;
+            }
+
+            $processedSizes = [];
+
+            // Process new/updated variants
             foreach ($_POST['variants'] as $variant) {
                 if (!empty($variant['size'])) {
-                    $stmt = $pdo->prepare('INSERT INTO product_variants (variant_id, product_id, size, price_modifier, stock) 
-                                         VALUES (?, ?, ?, ?, ?)');
-                    $stmt->execute([
-                        bin2hex(random_bytes(16)),
-                        $productId,
-                        $variant['size'],
-                        $variant['price_modifier'],
-                        $variant['stock']
-                    ]);
+                    $processedSizes[] = $variant['size'];
+
+                    if (isset($existingVariantMap[$variant['size']])) {
+                        // Update existing variant
+                        $stmt = $pdo->prepare('UPDATE product_variants SET price_modifier = ?, stock = ? WHERE variant_id = ?');
+                        $stmt->execute([
+                            $variant['price_modifier'],
+                            $variant['stock'],
+                            $existingVariantMap[$variant['size']]['variant_id']
+                        ]);
+                    } else {
+                        // Insert new variant
+                        $stmt = $pdo->prepare('INSERT INTO product_variants (variant_id, product_id, size, price_modifier, stock)
+                                             VALUES (?, ?, ?, ?, ?)');
+                        $stmt->execute([
+                            bin2hex(random_bytes(16)),
+                            $productId,
+                            $variant['size'],
+                            $variant['price_modifier'],
+                            $variant['stock']
+                        ]);
+                    }
                     $totalStock += (int)$variant['stock'];
+                }
+            }
+
+            // Remove variants that are no longer needed (only if not referenced by orders or cart)
+            foreach ($existingVariants as $existingVariant) {
+                if (!in_array($existingVariant['size'], $processedSizes)) {
+                    // Check if this variant is referenced by any orders
+                    $stmt = $pdo->prepare('SELECT COUNT(*) FROM order_items WHERE variant_id = ?');
+                    $stmt->execute([$existingVariant['variant_id']]);
+                    $orderCount = $stmt->fetchColumn();
+
+                    // Check if this variant is referenced by any cart items
+                    $stmt = $pdo->prepare('SELECT COUNT(*) FROM cart_items WHERE variant_id = ?');
+                    $stmt->execute([$existingVariant['variant_id']]);
+                    $cartCount = $stmt->fetchColumn();
+
+                    if ($orderCount == 0 && $cartCount == 0) {
+                        // Safe to delete - not referenced by any orders or cart items
+                        $stmt = $pdo->prepare('DELETE FROM product_variants WHERE variant_id = ?');
+                        $stmt->execute([$existingVariant['variant_id']]);
+                    }
+                    // If referenced by orders or cart, we keep the variant but don't include it in stock calculation
                 }
             }
         }

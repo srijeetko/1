@@ -13,24 +13,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_product'])) {
     $product_id = $_POST['delete_product'];
     try {
         $pdo->beginTransaction();
-        
+
+        // Check if any variants are referenced by orders
+        $stmt = $pdo->prepare('
+            SELECT COUNT(*) as order_count
+            FROM order_items oi
+            JOIN product_variants pv ON oi.variant_id = pv.variant_id
+            WHERE pv.product_id = ?
+        ');
+        $stmt->execute([$product_id]);
+        $orderCount = $stmt->fetchColumn();
+
+        // Check if any variants are referenced by cart items
+        $stmt = $pdo->prepare('
+            SELECT COUNT(*) as cart_count
+            FROM cart_items ci
+            JOIN product_variants pv ON ci.variant_id = pv.variant_id
+            WHERE pv.product_id = ?
+        ');
+        $stmt->execute([$product_id]);
+        $cartCount = $stmt->fetchColumn();
+
+        if ($orderCount > 0) {
+            throw new Exception('Cannot delete product: It has variants that are referenced by existing orders. Please contact system administrator.');
+        }
+
+        if ($cartCount > 0) {
+            throw new Exception('Cannot delete product: It has variants that are currently in users\' carts. Please contact system administrator.');
+        }
+
         // Delete product images
         $stmt = $pdo->prepare('DELETE FROM product_images WHERE product_id = ?');
         $stmt->execute([$product_id]);
-        
-        // Delete product variants
+
+        // Delete product variants (safe now since we checked for order references)
         $stmt = $pdo->prepare('DELETE FROM product_variants WHERE product_id = ?');
         $stmt->execute([$product_id]);
-        
+
         // Delete product
         $stmt = $pdo->prepare('DELETE FROM products WHERE product_id = ?');
         $stmt->execute([$product_id]);
-        
+
         $pdo->commit();
         $_SESSION['success_message'] = 'Product deleted successfully';
     } catch (Exception $e) {
         $pdo->rollBack();
-        $_SESSION['error_message'] = 'Error deleting product';
+        $_SESSION['error_message'] = 'Error deleting product: ' . $e->getMessage();
     }
     header('Location: products.php');
     exit();
