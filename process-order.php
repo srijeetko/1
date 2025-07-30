@@ -221,65 +221,6 @@ try {
     // Log order creation for debugging
     error_log("Order created - ID: $order_id, Number: $order_number, Amount: $totalAmount, Result: " . ($result ? 'Success' : 'Failed'));
     
-    // Insert order items with error checking
-    foreach ($orderItems as $item) {
-        $item_id = bin2hex(random_bytes(16));
-
-        try {
-            // Handle variant_id - only insert if it's a valid variant, otherwise use NULL
-            $final_variant_id = null;
-            if ($item['variant_id'] && $item['variant_id'] !== 'default') {
-                // Check if variant exists in database
-                $stmt_check = $pdo->prepare("SELECT variant_id FROM product_variants WHERE variant_id = ?");
-                $stmt_check->execute([$item['variant_id']]);
-                if ($stmt_check->fetchColumn()) {
-                    $final_variant_id = $item['variant_id'];
-                }
-            }
-
-            $stmt = $pdo->prepare("
-                INSERT INTO order_items (
-                    order_item_id, order_id, product_id, product_name, variant_id,
-                    variant_name, quantity, unit_price, total_price, price, total, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-            ");
-
-            $result = $stmt->execute([
-                $item_id, $order_id, $item['product_id'], $item['product_name'],
-                $final_variant_id, $item['variant_name'] ?? null, $item['quantity'],
-                $item['price'], $item['total'], $item['price'], $item['total']
-            ]);
-
-            if (!$result) {
-                throw new Exception("Failed to insert order item: " . $item['product_name']);
-            }
-
-            // Log successful item insertion
-            error_log("Order item inserted - Product: {$item['product_name']}, Qty: {$item['quantity']}, Price: {$item['price']}, Total: {$item['total']}");
-
-        } catch (Exception $e) {
-            // Log the error but continue with other items
-            error_log("Order item insertion failed - Product: {$item['product_name']}, Error: " . $e->getMessage());
-
-            // Log to specific file for better tracking
-            $logEntry = date('Y-m-d H:i:s') . " - ORDER_ITEM_ERROR - Order: $order_id, Product: {$item['product_name']}, Error: " . $e->getMessage() . "\n";
-            file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
-        }
-    }
-
-    // Verify order items were inserted
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = ?");
-    $stmt->execute([$order_id]);
-    $itemCount = $stmt->fetchColumn();
-
-    if ($itemCount == 0) {
-        error_log("WARNING: No order items were inserted for order $order_id");
-        $logEntry = date('Y-m-d H:i:s') . " - ORDER_ITEMS_MISSING - Order: $order_id, Expected: " . count($orderItems) . ", Actual: 0\n";
-        file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
-    } else {
-        error_log("Order items verification - Order: $order_id, Items inserted: $itemCount");
-    }
-    
     // Save address to user account if requested and user is logged in
     if ($save_address && $user_id) {
         try {
@@ -312,15 +253,69 @@ try {
     
     // Handle payment processing
     if ($paymentMethod === 'cod') {
+        // Insert order items for COD orders
+        foreach ($orderItems as $item) {
+            $item_id = bin2hex(random_bytes(16));
+
+            try {
+                // Handle variant_id - only insert if it's a valid variant, otherwise use NULL
+                $final_variant_id = null;
+                if ($item['variant_id'] && $item['variant_id'] !== 'default') {
+                    // Check if variant exists in database
+                    $stmt_check = $pdo->prepare("SELECT variant_id FROM product_variants WHERE variant_id = ?");
+                    $stmt_check->execute([$item['variant_id']]);
+                    if ($stmt_check->fetchColumn()) {
+                        $final_variant_id = $item['variant_id'];
+                    }
+                }
+
+                $stmt = $pdo->prepare("
+                    INSERT INTO order_items (
+                        order_item_id, order_id, product_id, product_name, variant_id,
+                        variant_name, quantity, price, total, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                ");
+
+                $result = $stmt->execute([
+                    $item_id, $order_id, $item['product_id'], $item['product_name'],
+                    $final_variant_id, $item['variant_name'] ?? null, $item['quantity'],
+                    $item['price'], $item['total']
+                ]);
+
+                if (!$result) {
+                    throw new Exception("Failed to insert order item: " . $item['product_name']);
+                }
+
+                // Log successful item insertion
+                error_log("COD: Order item inserted - Product: {$item['product_name']}, Qty: {$item['quantity']}, Price: {$item['price']}, Total: {$item['total']}");
+
+            } catch (Exception $e) {
+                // Log the error and throw to rollback entire order
+                error_log("COD: Order item insertion failed - Product: {$item['product_name']}, Error: " . $e->getMessage());
+                throw new Exception("Failed to save order items: " . $e->getMessage());
+            }
+        }
+
+        // Verify order items were inserted
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = ?");
+        $stmt->execute([$order_id]);
+        $itemCount = $stmt->fetchColumn();
+
+        if ($itemCount == 0) {
+            throw new Exception("No order items were saved. Order cannot be processed.");
+        }
+
+        error_log("COD: Order items verification - Order: $order_id, Items inserted: $itemCount");
+
         // Cash on Delivery - Mark as confirmed
         $stmt = $pdo->prepare("UPDATE checkout_orders SET order_status = 'confirmed' WHERE order_id = ?");
         $stmt->execute([$order_id]);
-        
+
         // Create a transaction record for COD
         $transaction_id = bin2hex(random_bytes(16));
         $stmt = $pdo->prepare("
             INSERT INTO payment_transactions (
-                transaction_id, order_id, payment_method, amount, currency, 
+                transaction_id, order_id, payment_method, amount, currency,
                 transaction_status, created_at
             ) VALUES (?, ?, 'cod', ?, 'INR', 'pending', NOW())
         ");
@@ -348,6 +343,61 @@ try {
             // Log to specific file for better tracking
             $logEntry = date('Y-m-d H:i:s') . " - ORDER_CREATION - Transaction created - Order: $order_id, Transaction: $transaction_id, Amount: $totalAmount\n";
             file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
+
+            // CRITICAL FIX: Insert order items BEFORE creating Cashfree order
+            // This was the missing piece causing orders without products
+            foreach ($orderItems as $item) {
+                $item_id = bin2hex(random_bytes(16));
+
+                try {
+                    // Handle variant_id - only insert if it's a valid variant, otherwise use NULL
+                    $final_variant_id = null;
+                    if ($item['variant_id'] && $item['variant_id'] !== 'default') {
+                        // Check if variant exists in database
+                        $stmt_check = $pdo->prepare("SELECT variant_id FROM product_variants WHERE variant_id = ?");
+                        $stmt_check->execute([$item['variant_id']]);
+                        if ($stmt_check->fetchColumn()) {
+                            $final_variant_id = $item['variant_id'];
+                        }
+                    }
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO order_items (
+                            order_item_id, order_id, product_id, product_name, variant_id,
+                            variant_name, quantity, price, total, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                    ");
+
+                    $result = $stmt->execute([
+                        $item_id, $order_id, $item['product_id'], $item['product_name'],
+                        $final_variant_id, $item['variant_name'] ?? null, $item['quantity'],
+                        $item['price'], $item['total']
+                    ]);
+
+                    if (!$result) {
+                        throw new Exception("Failed to insert order item: " . $item['product_name']);
+                    }
+
+                    // Log successful item insertion
+                    error_log("Cashfree: Order item inserted - Product: {$item['product_name']}, Qty: {$item['quantity']}, Price: {$item['price']}, Total: {$item['total']}");
+
+                } catch (Exception $e) {
+                    // Log the error and throw to rollback entire order
+                    error_log("Cashfree: Order item insertion failed - Product: {$item['product_name']}, Error: " . $e->getMessage());
+                    throw new Exception("Failed to save order items: " . $e->getMessage());
+                }
+            }
+
+            // Verify order items were inserted
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = ?");
+            $stmt->execute([$order_id]);
+            $itemCount = $stmt->fetchColumn();
+
+            if ($itemCount == 0) {
+                throw new Exception("No order items were saved. Order cannot be processed.");
+            }
+
+            error_log("Cashfree: Order items verification - Order: $order_id, Items inserted: $itemCount");
 
             // Prepare order data for Cashfree
             $orderData = [
@@ -385,7 +435,7 @@ try {
 
             // Enhanced logging for successful order creation
             error_log("Cashfree: Order created successfully - " . json_encode($cashfreeOrder));
-            $logEntry = date('Y-m-d H:i:s') . " - ORDER_CREATION - Cashfree order created successfully - Order: $order_id, Cashfree ID: " . ($cashfreeOrder['order_id'] ?? 'unknown') . "\n";
+            $logEntry = date('Y-m-d H:i:s') . " - ORDER_CREATION - Cashfree order created successfully - Order: $order_id, Cashfree ID: " . ($cashfreeOrder['order_id'] ?? 'unknown') . ", Items: $itemCount\n";
             file_put_contents('logs/order_errors.log', $logEntry, FILE_APPEND | LOCK_EX);
 
             // Clear any output buffer to prevent JSON corruption

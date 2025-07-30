@@ -171,33 +171,29 @@ if (isset($_POST['add_sample_products'])) {
             [
                 'product_id' => bin2hex(random_bytes(16)),
                 'name' => 'Whey Protein Powder',
-                'price' => 2500.00,
-                'description' => 'Premium whey protein for muscle building'
+                'price' => 2500.00
             ],
             [
                 'product_id' => bin2hex(random_bytes(16)),
                 'name' => 'Creatine Monohydrate',
-                'price' => 1200.00,
-                'description' => 'Pure creatine for strength and power'
+                'price' => 1200.00
             ],
             [
                 'product_id' => bin2hex(random_bytes(16)),
                 'name' => 'BCAA Supplement',
-                'price' => 1800.00,
-                'description' => 'Branched-chain amino acids for recovery'
+                'price' => 1800.00
             ]
         ];
         
         foreach ($sampleProducts as $product) {
             $stmt = $pdo->prepare("
-                INSERT INTO products (product_id, name, price, description, created_at)
-                VALUES (?, ?, ?, ?, NOW())
+                INSERT INTO products (product_id, name, price, created_at)
+                VALUES (?, ?, ?, NOW())
             ");
             $stmt->execute([
                 $product['product_id'],
                 $product['name'],
-                $product['price'],
-                $product['description']
+                $product['price']
             ]);
             
             echo "<p>✅ Added: {$product['name']} - ₹{$product['price']}</p>";
