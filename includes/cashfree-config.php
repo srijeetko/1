@@ -39,7 +39,7 @@ define('CASHFREE_API_VERSION', '2023-08-01');
 
 // Base URL for return and webhook URLs (HTTPS required for production API)
 // Update this with your ngrok HTTPS URL when testing
-define('CASHFREE_BASE_URL', 'https://a434bcdcbe75.ngrok-free.app/1'); // Replace with your actual ngrok URL
+define('CASHFREE_BASE_URL', 'https://50a7b1afaf2f.ngrok-free.app/1'); // Replace with your actual ngrok URL
 
 // Ngrok bypass header for API requests
 define('NGROK_BYPASS_HEADER', 'ngrok-skip-browser-warning');

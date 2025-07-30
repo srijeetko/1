@@ -16,21 +16,20 @@ try {
     echo "<p><strong>Total products:</strong> $productCount</p>";
     
     if ($productCount > 0) {
-        $stmt = $pdo->prepare("SELECT product_id, name, price, image_url FROM products LIMIT 5");
+        $stmt = $pdo->prepare("SELECT product_id, name, price FROM products LIMIT 5");
         $stmt->execute();
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         echo "<table border='1' style='border-collapse: collapse; width: 100%;'>";
         echo "<tr style='background: #f8f9fa;'>";
-        echo "<th>Product ID</th><th>Name</th><th>Price</th><th>Image</th>";
+        echo "<th>Product ID</th><th>Name</th><th>Price</th>";
         echo "</tr>";
-        
+
         foreach ($products as $product) {
             echo "<tr>";
             echo "<td>" . htmlspecialchars($product['product_id']) . "</td>";
             echo "<td>" . htmlspecialchars($product['name']) . "</td>";
             echo "<td>₹" . $product['price'] . "</td>";
-            echo "<td>" . ($product['image_url'] ? 'Yes' : 'No') . "</td>";
             echo "</tr>";
         }
         echo "</table>";
@@ -172,37 +171,29 @@ if (isset($_POST['add_sample_products'])) {
             [
                 'product_id' => bin2hex(random_bytes(16)),
                 'name' => 'Whey Protein Powder',
-                'price' => 2500.00,
-                'description' => 'Premium whey protein for muscle building',
-                'image_url' => 'assets/images/whey-protein.jpg'
+                'price' => 2500.00
             ],
             [
                 'product_id' => bin2hex(random_bytes(16)),
                 'name' => 'Creatine Monohydrate',
-                'price' => 1200.00,
-                'description' => 'Pure creatine for strength and power',
-                'image_url' => 'assets/images/creatine.jpg'
+                'price' => 1200.00
             ],
             [
                 'product_id' => bin2hex(random_bytes(16)),
                 'name' => 'BCAA Supplement',
-                'price' => 1800.00,
-                'description' => 'Branched-chain amino acids for recovery',
-                'image_url' => 'assets/images/bcaa.jpg'
+                'price' => 1800.00
             ]
         ];
         
         foreach ($sampleProducts as $product) {
             $stmt = $pdo->prepare("
-                INSERT INTO products (product_id, name, price, description, image_url, created_at)
-                VALUES (?, ?, ?, ?, ?, NOW())
+                INSERT INTO products (product_id, name, price, created_at)
+                VALUES (?, ?, ?, NOW())
             ");
             $stmt->execute([
                 $product['product_id'],
                 $product['name'],
-                $product['price'],
-                $product['description'],
-                $product['image_url']
+                $product['price']
             ]);
             
             echo "<p>✅ Added: {$product['name']} - ₹{$product['price']}</p>";
