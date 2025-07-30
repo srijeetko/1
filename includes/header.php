@@ -27,7 +27,14 @@ if (session_status() === PHP_SESSION_NONE) {
                     <a href="index.php" class="logo">
                         <img src="assets/Alpha-Logo.png" alt="Alpha Nutrition Logo" style="height:48px; width:auto;">
                     </a>
-                      <div class="search-container">
+
+                    <!-- Mobile Search Toggle -->
+                    <button class="mobile-search-toggle" id="mobileSearchToggle" aria-label="Toggle Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+
+                    <!-- Search Container -->
+                    <div class="search-container" id="searchContainer">
                         <form action="search.php" method="GET" class="search-wrapper" id="header-search-form">
                             <div class="search-icon-container">
                                 <svg viewBox="0 0 20 20" aria-hidden="true" class="search-svg">
@@ -39,7 +46,7 @@ if (session_status() === PHP_SESSION_NONE) {
                             <div id="search-suggestions" class="search-suggestions-dropdown" style="display: none;"></div>
                         </form>
                     </div>
-                    
+
                     <div class="header-icons">
                         <a href="wishlist.php" class="header-icon wishlist-icon">
                             <i class="fas fa-heart"></i>
@@ -50,41 +57,47 @@ if (session_status() === PHP_SESSION_NONE) {
                             <i class="fas fa-shopping-cart"></i>
                             <span class="cart-count">0</span>
                         </a>
+
+                        <!-- Mobile Menu Toggle -->
+                        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle Menu">
+                            <span class="hamburger-line"></span>
+                            <span class="hamburger-line"></span>
+                            <span class="hamburger-line"></span>
+                        </button>
                     </div>
                 </nav>
             </div>
         </div>
         
         <div class="header-bottom">
-            <div class="container">                
-                <ul class="nav-links">
-    
-    <li><a href="sports-supplements.php">SPORTS SUPPLEMENT</a></li>
-    <li class="dropdown">
-        <a class="dropdown-toggle">CATEGORIES</a>
-        <div class="dropdown-menu">
-            <div class="dropdown-tabs">
-            </div>
-            <div class="tab-content active" id="tab-men">
-                <ul>
-                    <li><a href="men.php">MEN</a></li>
-                      <li><a href="women.php">WOMEN</a></li>
-                    
+            <div class="container">
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="sports-supplements.php">SPORTS SUPPLEMENT</a></li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle">CATEGORIES</a>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-tabs">
+                            </div>
+                            <div class="tab-content active" id="tab-men">
+                                <ul>
+                                    <li><a href="men.php">MEN</a></li>
+                                    <li><a href="women.php">WOMEN</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </li>
+                    <li><a href="best-sellers.php">BEST SELLERS</a></li>
+                    <li><a href="featured-products.php">FEATURED</a></li>
+                    <li><a href="about-us.php">ABOUT US</a></li>
+                    <li><a href="contact.php">CONTACT</a></li>
+                    <li><a href="products.php">OUR PRODUCTS</a></li>
+                    <li><a href="blog.php">BLOGS</a></li>
                 </ul>
+
+                <!-- Mobile Navigation Overlay -->
+                <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
             </div>
         </div>
-    </li>
-
-    </li>
-    
-    <li><a href="best-sellers.php">BEST SELLERS</a></li>
-    <li><a href="featured-products.php">FEATURED</a></li>
-    <li><a href="about-us.php">ABOUT US</a></li>
-    <li><a href="contact.php">CONTACT</a></li>
-    <li><a href="products.php">OUR PRODUCTS</a></li>
-    <li><a href="blog.php">BLOGS</a></li>
-</li>
-</ul>
 <style>
 .dropdown { position: relative; }
 .dropdown-menu {
@@ -175,6 +188,39 @@ document.addEventListener('DOMContentLoaded', function() {
             tabContents.forEach(c => c.classList.remove('active'));
             this.classList.add('active');
             document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+        });
+    });
+
+    // Mobile Navigation Toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const navLinks = document.getElementById('navLinks');
+    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+    const mobileSearchToggle = document.getElementById('mobileSearchToggle');
+    const searchContainer = document.getElementById('searchContainer');
+
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', function() {
+            toggleMobileMenu();
+        });
+    }
+
+    if (mobileNavOverlay) {
+        mobileNavOverlay.addEventListener('click', function() {
+            closeMobileMenu();
+        });
+    }
+
+    if (mobileSearchToggle) {
+        mobileSearchToggle.addEventListener('click', function() {
+            toggleMobileSearch();
+        });
+    }
+
+    // Close mobile menu when clicking on nav links
+    const navLinkItems = document.querySelectorAll('.nav-links a');
+    navLinkItems.forEach(link => {
+        link.addEventListener('click', function() {
+            closeMobileMenu();
         });
     });
 
@@ -528,6 +574,59 @@ function showCartPreview() {
             }
         }
     }, 3000);
+}
+
+// Mobile Navigation Functions
+function toggleMobileMenu() {
+    const navLinks = document.getElementById('navLinks');
+    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+    if (navLinks.classList.contains('mobile-active')) {
+        closeMobileMenu();
+    } else {
+        openMobileMenu();
+    }
+}
+
+function openMobileMenu() {
+    const navLinks = document.getElementById('navLinks');
+    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+    navLinks.classList.add('mobile-active');
+    mobileNavOverlay.classList.add('active');
+    mobileMenuToggle.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMobileMenu() {
+    const navLinks = document.getElementById('navLinks');
+    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+    navLinks.classList.remove('mobile-active');
+    mobileNavOverlay.classList.remove('active');
+    mobileMenuToggle.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function toggleMobileSearch() {
+    const searchContainer = document.getElementById('searchContainer');
+    const mobileSearchToggle = document.getElementById('mobileSearchToggle');
+
+    if (searchContainer.classList.contains('mobile-active')) {
+        searchContainer.classList.remove('mobile-active');
+        mobileSearchToggle.classList.remove('active');
+    } else {
+        searchContainer.classList.add('mobile-active');
+        mobileSearchToggle.classList.add('active');
+        // Focus on search input
+        const searchInput = document.getElementById('header-search-input');
+        if (searchInput) {
+            setTimeout(() => searchInput.focus(), 100);
+        }
+    }
 }
 </script>
 
