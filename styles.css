@@ -1041,8 +1041,9 @@ body {
 .cert-grid {
     display: flex;
     justify-content: center;
-    gap: 5rem;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 3rem;
+    flex-wrap: nowrap;
 }
 
 .cert-item {
@@ -1064,6 +1065,28 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Responsive design for certifications */
+@media (max-width: 768px) {
+    .cert-grid {
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .cert-item .cert-icon img {
+        width: 100px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .cert-grid {
+        gap: 1rem;
+    }
+
+    .cert-item .cert-icon img {
+        width: 80px !important;
+    }
 }
 
 /* Newsletter */
@@ -1719,6 +1742,14 @@ body {
     justify-content: flex-start; /* Move to left side */
 }
 
+.category-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    position: relative;
+}
+
 .filter-icon {
     color: #666;
     font-size: 1.2rem;
@@ -1733,10 +1764,55 @@ body {
 
 .category-pills {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 12px;
     flex: 1;
     justify-content: flex-start; /* Move to left side */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+
+.category-pills::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+.category-slider-btn {
+    background: #fff;
+    border: 2px solid #666;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #666;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.category-slider-btn:hover {
+    background: #666;
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.category-slider-btn:active {
+    transform: scale(0.95);
+}
+
+.category-slider-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.category-slider-btn:disabled:hover {
+    background: #fff;
+    color: #666;
+    transform: none;
 }
 
 .pill {
@@ -1756,6 +1832,8 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     animation: pillFadeIn 0.6s ease-out forwards;
     opacity: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 /* Staggered animation for pills */
@@ -1916,25 +1994,34 @@ body {
 
 /* Make the pills scrollable on mobile */
 @media (max-width: 768px) {
-    .category-pills {
-        display: flex;
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        padding-bottom: 10px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Firefox */
+    .category-slider-container {
+        gap: 5px;
     }
 
-    .category-pills::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Edge */
-    }
-
-    .pill {
-        flex-shrink: 0;
+    .category-slider-btn {
+        width: 35px;
+        height: 35px;
     }
 
     .select-concern {
         gap: 10px;
+    }
+
+    .filter-icon,
+    .select-label {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-slider-btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    .category-slider-btn svg {
+        width: 16px;
+        height: 16px;
     }
 }
 
@@ -2642,7 +2729,7 @@ body {
     .cart-item-details h4 {
         font-size: 0.9rem;
     }
-}
+
 
 /* Checkout Page Styles - Couture Candy Design */
 .checkout-container {

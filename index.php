@@ -92,190 +92,127 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
 <!-- Vitamin Categories -->
 <section class="vitamin-categories">
     <div class="container">
-        <h2 class="section-title serif" style="text-align:center; font-size:2.5rem; margin-bottom:0.5rem;">Explore Premium Vitamins from CF</h2>
-        <p style="text-align:center; color:#444; font-size:1.2rem; margin-bottom:2.5rem;">
-            We have vitamins for every age and all kinds of lifestyles. We provide an easy way to fill your nutritional gaps so that you can achieve more from your day.
-        </p>
-        <div class="category-grid custom-vitamin-cards">
-            <div class="category-card men custom-card men-bg">
-                <div class="custom-card-inner">
-                    <div class="custom-card-header">
-                        <strong>Explore Premium Vitamins from CF</strong>
-                        <div style="font-size:0.95rem; color:#333; margin-top:0.3rem;">
-                            We have vitamins for every age and all kinds of lifestyles. We provide an easy way to fill your nutritional gaps so that you can achieve more from your day.
-                        </div>
-                    </div>
-                    <div class="custom-card-image-row">
-                        <img src="assets/men.jpg" alt="Men" class="custom-card-img">
-                        <img src="assets/kids.jpg" alt="Kids" class="custom-card-img">
-                    </div>
-                    <div class="custom-card-label-row">
-                        <span>WOMEN</span>
-                        <span>KIDS</span>
-                    </div>
-                </div>
-                <div class="custom-card-title">MEN</div>
+        <!-- Top Row - Category Images -->
+        <div class="category-images-row">
+            <div class="category-image-card men-category">
+                <a href="men.php">
+                <img src="assets\men.jpg" alt="Men" class="category-main-image">
+             </a>
+                <div class="category-label">MEN</div>
             </div>
-            <div class="category-card women custom-card women-bg">
-                <div class="custom-card-inner">
-                    <div class="custom-card-header">
-                        <strong>Explore Premium Vitamins from CF</strong>
-                        <div style="font-size:0.95rem; color:#333; margin-top:0.3rem;">
-                            We have vitamins for every age and all kinds of lifestyles. We provide an easy way to fill your nutritional gaps so that you can achieve more from your day.
-                        </div>
-                    </div>
-                    <div class="custom-card-image-row">
-                        <img src="assets/women.jpg" alt="Women" class="custom-card-img">
-                        <img src="assets/kids.jpg" alt="Kids" class="custom-card-img">
-                    </div>
-                    <div class="custom-card-label-row">
-                        <span>WOMEN</span>
-                        <span>KIDS</span>
-                    </div>
-                </div>
-                <div class="custom-card-title">WOMEN</div>
+            <div class="category-image-card women-category">
+            <a href="women.php">
+            <img src="assets/women.jpeg" alt="Women" class="category-main-image">
+            <div class="category-label">WOMEN</div>
+        </a>
+
             </div>
-            <div class="category-card kids custom-card kids-bg">
-                <div class="custom-card-inner">
-                    <div class="custom-card-header">
-                        <strong>Explore Premium Vitamins from CF</strong>
-                        <div style="font-size:0.95rem; color:#333; margin-top:0.3rem;">
-                            We have vitamins for every age and all kinds of lifestyles. We provide an easy way to fill your nutritional gaps so that you can achieve more from your day.
-                        </div>
-                    </div>
-                    <div class="custom-card-image-row">
-                        <img src="assets/women.jpg" alt="Women" class="custom-card-img">
-                        <img src="assets/kids.jpg" alt="Kids" class="custom-card-img">
-                    </div>
-                    <div class="custom-card-label-row">
-                        <span>WOMEN</span>
-                        <span>KIDS</span>
-                    </div>
-                </div>
-                <div class="custom-card-title">KIDS</div>
+            <div class="category-image-card kids-category">
+                <img src="assets/kid.jpg" alt="Kids" class="category-main-image">
+                <div class="category-label">KIDS</div>
             </div>
-            <div class="category-card more custom-card more-bg">
-                <div class="custom-card-inner">
-                    <div class="custom-card-header">
-                        <strong>Explore Premium Vitamins from CF</strong>
-                        <div style="font-size:0.95rem; color:#333; margin-top:0.3rem;">
-                            We have vitamins for every age and all kinds of lifestyles. We provide an easy way to fill your nutritional gaps so that you can achieve more from your day.
-                        </div>
-                    </div>
-                    <div class="custom-card-image-row">
-                        <img src="assets/women.jpg" alt="Women" class="custom-card-img">
-                        <img src="assets/kids.jpg" alt="Kids" class="custom-card-img">
-                    </div>
-                    <div class="custom-card-label-row">
-                        <span>WOMEN</span>
-                        <span>KIDS</span>
-                    </div>
-                </div>
-                <div class="custom-card-title">MORE</div>
+            <div class="category-image-card more-category">
+                <img src="assets/family.jpg" alt="More" class="category-main-image">
+                <div class="category-label">MORE</div>
             </div>
         </div>
+
+
     </div>
 </section>
 
 <style>
-.custom-vitamin-cards {
+/* Vitamin Categories Styles */
+.vitamin-categories {
+    padding: 40px 0;
+    background: #fff;
+}
+
+/* Top Row - Category Images */
+.category-images-row {
     display: flex;
     justify-content: center;
-    align-items: stretch;
-    gap: 32px;
-    margin-top: 32px;
-    flex-wrap: wrap;
-}
-.custom-card {
-    border-radius: 22px;
-    padding: 0;
-    width: 370px;
-    min-height: 500px;
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    box-shadow: 0 2px 16px rgba(40,116,240,0.10);
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 10px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.category-images-row::-webkit-scrollbar {
+    display: none;
+}
+
+.category-image-card {
     position: relative;
-    margin-bottom: 24px;
-    background: #fff;
+    width: 260px;
+    height: 380px;
     overflow: hidden;
-}
-.men-bg { background: #4da3ff; }
-.women-bg { background: #ff99cc; }
-.kids-bg { background: #ffe066; }
-.more-bg { background: #6ee6ff; }
-.custom-card-inner {
-    width: 100%;
-    padding: 24px 0 0 0;
-    background: #fff;
-    border-radius: 18px 18px 0 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.custom-card-header {
-    width: 90%;
-    background: #fff;
-    border-radius: 10px 10px 0 0;
-    text-align: center;
-    padding: 12px 0 8px 0;
-    font-size: 1.15rem;
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-.custom-card-image-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0;
-    width: 90%;
-    margin: 0 auto;
-    margin-bottom: 0;
-}
-.custom-card-img {
-    width: 48%;
-    height: 210px;
-    object-fit: cover;
     border-radius: 0;
-    margin: 0 2px;
+    flex-shrink: 0;
 }
-.custom-card-label-row {
-    display: flex;
-    justify-content: space-between;
-    width: 90%;
-    margin: 0 auto 10px auto;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #222;
-}
-.custom-card-title {
+
+.category-main-image {
     width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.category-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
     text-align: center;
-    font-size: 2rem;
+    padding: 15px 0;
+    font-size: 1.5rem;
     font-weight: bold;
-    margin: 18px 0 18px 0;
-    letter-spacing: 1px;
-    color: #111;
-    background: transparent;
 }
+
+
+
+/* Responsive Styles */
 @media (max-width: 1200px) {
-    .custom-vitamin-cards {
-        gap: 18px;
-    }
-    .custom-card {
-        width: 320px;
-        min-height: 440px;
+    .category-image-card {
+        width: 230px;
+        height: 340px;
     }
 }
-@media (max-width: 900px) {
-    .custom-vitamin-cards {
-        flex-direction: column;
-        align-items: center;
-        gap: 18px;
+
+@media (max-width: 992px) {
+    .category-image-card {
+        width: 200px;
+        height: 300px;
     }
-    .custom-card {
-        width: 95%;
-        min-width: 220px;
+}
+
+@media (max-width: 768px) {
+    .category-images-row {
+        justify-content: flex-start;
+        padding: 10px;
+    }
+
+    .category-image-card {
+        width: 180px;
+        height: 270px;
+    }
+}
+
+@media (max-width: 576px) {
+    .category-image-card {
+        width: 150px;
+        height: 220px;
+    }
+
+    .category-label {
+        padding: 10px 0;
+        font-size: 1.2rem;
     }
 }
 .hero {
@@ -770,31 +707,43 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
         <div class="select-concern">
             <span class="filter-icon">🔍</span>
             <span class="select-label">SELECT CONCERN:</span>
-            <div class="category-pills">
-                <a href="protien.php" class="pill">
-                    <img src="assets/pro.jpg" alt="Protein" class="category-icon">
-                    <span>Protein</span>
-                </a>
-                <a href="Gainer.php" class="pill">
-                    <img src="assets/gainer.jpg" alt="Gainer" class="category-icon">
-                    <span>Gainer</span>
-                </a>
-                <a href="Weight Management.php" class="pill">
-                    <img src="assets/wei.jpg" alt="Weight Management" class="category-icon">
-                    <span>Weight Management</span>
-                </a>
-                <a href="Muscle Builder.php" class="pill">
-                    <img src="assets/muscle.png" alt="Muscle Builder" class="category-icon">
-                    <span>Muscle Builder</span>
-                </a>
-                <a href="Health and Beautyr.php" class="pill">
-                    <img src="assets/beauty.jpg" alt="Health and Beauty" class="category-icon">
-                    <span>Health and Beauty</span>
-                </a>
-                <a href="Tablets.php" class="pill">
-                    <img src="assets/tab.jpg" alt="Tablets" class="category-icon">
-                    <span>Tablets</span>
-                </a>
+            <div class="category-slider-container">
+                <button class="category-slider-btn category-slider-prev" id="categoryPrev">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15,18 9,12 15,6"></polyline>
+                    </svg>
+                </button>
+                <div class="category-pills" id="categoryPills">
+                    <a href="protien.php" class="pill">
+                        <img src="assets/pro.jpg" alt="Protein" class="category-icon">
+                        <span>Protein</span>
+                    </a>
+                    <a href="Gainer.php" class="pill">
+                        <img src="assets/gainer.jpg" alt="Gainer" class="category-icon">
+                        <span>Gainer</span>
+                    </a>
+                    <a href="Weight Management.php" class="pill">
+                        <img src="assets/wei.jpg" alt="Weight Management" class="category-icon">
+                        <span>Weight Management</span>
+                    </a>
+                    <a href="Muscle Builder.php" class="pill">
+                        <img src="assets/muscle.png" alt="Muscle Builder" class="category-icon">
+                        <span>Muscle Builder</span>
+                    </a>
+                    <a href="Health and Beautyr.php" class="pill">
+                        <img src="assets/beauty.jpg" alt="Health and Beauty" class="category-icon">
+                        <span>Health and Beauty</span>
+                    </a>
+                    <a href="Tablets.php" class="pill">
+                        <img src="assets/tab.jpg" alt="Tablets" class="category-icon">
+                        <span>Tablets</span>
+                    </a>
+                </div>
+                <button class="category-slider-btn category-slider-next" id="categoryNext">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9,18 15,12 9,6"></polyline>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
@@ -1828,7 +1777,6 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
                 <div class="cert-icon">
                     <img src="assets/Gmp black.png" alt="GMP Certified" style="width: 150px; height: auto;">
                 </div>
-            </div>
             </div>
             <div class="cert-item animate-on-scroll">
                 <div class="cert-icon">

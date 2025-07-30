@@ -47,6 +47,76 @@ if (carousel) {
     }, 6000);
 }
 
+// Category Pills Slider Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryPills = document.getElementById('categoryPills');
+    const prevBtn = document.getElementById('categoryPrev');
+    const nextBtn = document.getElementById('categoryNext');
+
+    if (categoryPills && prevBtn && nextBtn) {
+        let scrollAmount = 0;
+        const scrollStep = 200; // Amount to scroll each time
+
+        function updateButtonStates() {
+            const maxScroll = categoryPills.scrollWidth - categoryPills.clientWidth;
+            prevBtn.disabled = scrollAmount <= 0;
+            nextBtn.disabled = scrollAmount >= maxScroll;
+        }
+
+        function smoothScroll(targetScroll) {
+            const startScroll = categoryPills.scrollLeft;
+            const distance = targetScroll - startScroll;
+            const duration = 300;
+            let startTime = null;
+
+            function animation(currentTime) {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                const progress = Math.min(timeElapsed / duration, 1);
+
+                // Easing function for smooth animation
+                const easeInOutCubic = progress < 0.5
+                    ? 4 * progress * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+                categoryPills.scrollLeft = startScroll + distance * easeInOutCubic;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animation);
+                } else {
+                    scrollAmount = categoryPills.scrollLeft;
+                    updateButtonStates();
+                }
+            }
+
+            requestAnimationFrame(animation);
+        }
+
+        prevBtn.addEventListener('click', function() {
+            scrollAmount = Math.max(0, scrollAmount - scrollStep);
+            smoothScroll(scrollAmount);
+        });
+
+        nextBtn.addEventListener('click', function() {
+            const maxScroll = categoryPills.scrollWidth - categoryPills.clientWidth;
+            scrollAmount = Math.min(maxScroll, scrollAmount + scrollStep);
+            smoothScroll(scrollAmount);
+        });
+
+        // Update button states on scroll (for manual scrolling)
+        categoryPills.addEventListener('scroll', function() {
+            scrollAmount = categoryPills.scrollLeft;
+            updateButtonStates();
+        });
+
+        // Initialize button states
+        updateButtonStates();
+
+        // Update on window resize
+        window.addEventListener('resize', updateButtonStates);
+    }
+});
+
 // Premium Add to cart functionality
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('add-to-cart')) {
