@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interakt WhatsApp Template Creation Guide</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 2rem auto; padding: 1rem; line-height: 1.6; }
+        .container { background: #f9f9f9; padding: 2rem; border-radius: 8px; }
+        .template-box { background: white; border: 2px solid #25d366; padding: 1.5rem; margin: 1rem 0; border-radius: 8px; }
+        .template-name { background: #25d366; color: white; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold; margin-bottom: 1rem; }
+        .template-content { background: #f0f8ff; padding: 1rem; border-radius: 4px; font-family: monospace; }
+        .step { background: #e8f5e8; padding: 1rem; margin: 1rem 0; border-left: 4px solid #4caf50; }
+        .warning { background: #fff3cd; padding: 1rem; margin: 1rem 0; border-left: 4px solid #ffc107; }
+        .info { background: #e3f2fd; padding: 1rem; margin: 1rem 0; border-left: 4px solid #2196f3; }
+        h1, h2 { color: #333; }
+        h1 { border-bottom: 3px solid #ff6b35; padding-bottom: 0.5rem; }
+        .highlight { background: #ffeb3b; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        code { background: #f5f5f5; padding: 0.2rem 0.4rem; border-radius: 3px; font-family: monospace; }
+        .button { background: #ff6b35; color: white; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px; display: inline-block; margin: 0.5rem 0; }
+        .button:hover { background: #e55a2b; }
+        ol li { margin: 0.5rem 0; }
+        .screenshot-placeholder { background: #f0f0f0; border: 2px dashed #ccc; padding: 2rem; text-align: center; margin: 1rem 0; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Interakt WhatsApp Template Creation Guide</h1>
+        
+        <div class="info">
+            <h3>📋 What You Need to Create</h3>
+            <p>You need to create <strong>4 WhatsApp message templates</strong> in your Interakt dashboard for the OTP system to work:</p>
+            <ul>
+                <li><code>registration_otp</code> - For user registration</li>
+                <li><code>login_otp</code> - For passwordless login</li>
+                <li><code>password_reset_otp</code> - For password reset</li>
+                <li><code>phone_verification_otp</code> - For phone verification</li>
+            </ul>
+        </div>
+
+        <h2>📱 Step-by-Step Template Creation</h2>
+
+        <div class="step">
+            <h3>Step 1: Access Interakt Dashboard</h3>
+            <ol>
+                <li>Go to <a href="https://app.interakt.ai" target="_blank">https://app.interakt.ai</a></li>
+                <li>Log in with your credentials</li>
+                <li>Navigate to <strong>"Templates"</strong> section in the left sidebar</li>
+                <li>Click <strong>"Create Template"</strong> or <strong>"+ New Template"</strong></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Template Configuration</h3>
+            <p>For each template, you'll need to configure:</p>
+            <ul>
+                <li><strong>Template Name:</strong> Use exact names from the list above</li>
+                <li><strong>Category:</strong> Select <span class="highlight">"AUTHENTICATION"</span></li>
+                <li><strong>Language:</strong> Select <span class="highlight">"English"</span></li>
+                <li><strong>Header:</strong> Leave empty (optional)</li>
+                <li><strong>Body:</strong> Use the message content below</li>
+                <li><strong>Footer:</strong> Leave empty (optional)</li>
+                <li><strong>Buttons:</strong> None needed for OTP</li>
+            </ul>
+        </div>
+
+        <h2>📝 Template Content</h2>
+
+        <div class="template-box">
+            <div class="template-name">Template 1: registration_otp</div>
+            <div class="template-content">
+Welcome! Your registration OTP is: {{1}}. Valid for 5 minutes. Do not share this code with anyone.
+            </div>
+            <p><strong>Variable:</strong> {{1}} = 6-digit OTP code</p>
+        </div>
+
+        <div class="template-box">
+            <div class="template-name">Template 2: login_otp</div>
+            <div class="template-content">
+Your login OTP is: {{1}}. Valid for 5 minutes. If you did not request this, please ignore.
+            </div>
+            <p><strong>Variable:</strong> {{1}} = 6-digit OTP code</p>
+        </div>
+
+        <div class="template-box">
+            <div class="template-name">Template 3: password_reset_otp</div>
+            <div class="template-content">
+Your password reset OTP is: {{1}}. Valid for 5 minutes. Use this to reset your password.
+            </div>
+            <p><strong>Variable:</strong> {{1}} = 6-digit OTP code</p>
+        </div>
+
+        <div class="template-box">
+            <div class="template-name">Template 4: phone_verification_otp</div>
+            <div class="template-content">
+Verify your phone number. Your verification OTP is: {{1}}. Valid for 5 minutes.
+            </div>
+            <p><strong>Variable:</strong> {{1}} = 6-digit OTP code</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Template Creation Process</h3>
+            <ol>
+                <li><strong>Template Name:</strong> Enter exactly <code>registration_otp</code> (for first template)</li>
+                <li><strong>Category:</strong> Select "AUTHENTICATION"</li>
+                <li><strong>Language:</strong> Select "English"</li>
+                <li><strong>Body Text:</strong> Copy the exact message content from above</li>
+                <li><strong>Variables:</strong> The system will automatically detect <code>{{1}}</code> as a variable</li>
+                <li><strong>Preview:</strong> Check the preview to ensure it looks correct</li>
+                <li><strong>Submit:</strong> Click "Submit for Approval" or "Create Template"</li>
+            </ol>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ Important Notes</h3>
+            <ul>
+                <li><strong>Exact Names:</strong> Template names must match exactly (case-sensitive)</li>
+                <li><strong>Variable Format:</strong> Use <code>{{1}}</code> for the OTP placeholder</li>
+                <li><strong>Category:</strong> Must be "AUTHENTICATION" for OTP templates</li>
+                <li><strong>Approval Time:</strong> WhatsApp approval takes 24-48 hours</li>
+                <li><strong>Character Limit:</strong> Keep messages under 1024 characters</li>
+                <li><strong>No Emojis:</strong> Avoid emojis in authentication templates</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Repeat for All Templates</h3>
+            <p>Create all 4 templates using the same process:</p>
+            <ol>
+                <li>Create <code>registration_otp</code></li>
+                <li>Create <code>login_otp</code></li>
+                <li>Create <code>password_reset_otp</code></li>
+                <li>Create <code>phone_verification_otp</code></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Step 5: Check Approval Status</h3>
+            <ol>
+                <li>Go to Templates section in Interakt dashboard</li>
+                <li>Check status of each template:
+                    <ul>
+                        <li><span style="color: orange;">🟡 PENDING</span> - Waiting for WhatsApp approval</li>
+                        <li><span style="color: green;">🟢 APPROVED</span> - Ready to use</li>
+                        <li><span style="color: red;">🔴 REJECTED</span> - Needs modification</li>
+                    </ul>
+                </li>
+                <li>Wait for all templates to be approved before testing</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>🧪 Testing Your Templates</h3>
+            <p>Once all templates are approved:</p>
+            <ol>
+                <li>Visit <a href="test-interakt-api.php" class="button">Test Interakt API</a></li>
+                <li>Run the API connection test</li>
+                <li>Try sending a test OTP to your own number</li>
+                <li>If successful, test the full registration flow</li>
+            </ol>
+        </div>
+
+        <div class="warning">
+            <h3>🚨 Common Issues & Solutions</h3>
+            <ul>
+                <li><strong>Template Rejected:</strong> Usually due to wrong category or promotional content</li>
+                <li><strong>Variable Not Working:</strong> Ensure you use <code>{{1}}</code> not <code>{{otp_code}}</code></li>
+                <li><strong>Template Not Found:</strong> Check exact spelling and case sensitivity</li>
+                <li><strong>API Error 400:</strong> Template might not be approved yet</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Step 6: Update Database (After Approval)</h3>
+            <p>Once templates are approved, run the database setup:</p>
+            <ol>
+                <li>Visit <a href="setup-otp-web.php" class="button">Setup OTP Database</a></li>
+                <li>This will update the template names in your database</li>
+                <li>Test the OTP system with <a href="register-otp.php" class="button">Test Registration</a></li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>📞 Need Help?</h3>
+            <p>If you encounter issues:</p>
+            <ul>
+                <li>Check Interakt documentation: <a href="https://docs.interakt.ai" target="_blank">docs.interakt.ai</a></li>
+                <li>Contact Interakt support through their dashboard</li>
+                <li>Ensure your WhatsApp Business account is verified</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="index.php" class="button">← Back to Homepage</a>
+            <a href="test-interakt-api.php" class="button">Test API Connection</a>
+            <a href="setup-otp-web.php" class="button">Setup Database</a>
+        </div>
+    </div>
+</body>
+</html>

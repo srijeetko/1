@@ -63,7 +63,7 @@ class InteraktHandler {
         $url = $this->baseUrl . $endpoint;
 
         $headers = [
-            'Authorization: Basic ' . $this->apiKey,
+            'Authorization: Basic ' . base64_encode($this->apiKey),
             'Content-Type: application/json',
             'Accept: application/json'
         ];
@@ -753,5 +753,4 @@ class InteraktHandler {
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
-}
 }

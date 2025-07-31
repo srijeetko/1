@@ -73,6 +73,60 @@
     </div>
 
     <div class="nav-section">
+        <h4 class="nav-section-title">Order Management</h4>
+        <ul>
+            <li><a href="orders.php" class="nav-link" data-page="orders">
+                <div class="nav-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <span class="nav-text">Orders</span>
+                <div class="nav-indicator"></div>
+            </a></li>
+            <li><a href="returns.php" class="nav-link" data-page="returns">
+                <div class="nav-icon">
+                    <i class="fas fa-undo"></i>
+                </div>
+                <span class="nav-text">Returns & Refunds</span>
+                <div class="nav-indicator"></div>
+            </a></li>
+            <li><a href="refund-analytics.php" class="nav-link" data-page="refund-analytics">
+                <div class="nav-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <span class="nav-text">Refund Analytics</span>
+                <div class="nav-indicator"></div>
+            </a></li>
+        </ul>
+    </div>
+
+    <div class="nav-section">
+        <h4 class="nav-section-title">Order Management</h4>
+        <ul>
+            <li><a href="orders.php" class="nav-link" data-page="orders">
+                <div class="nav-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <span class="nav-text">Orders</span>
+                <div class="nav-indicator"></div>
+            </a></li>
+            <li><a href="returns.php" class="nav-link" data-page="returns">
+                <div class="nav-icon">
+                    <i class="fas fa-undo"></i>
+                </div>
+                <span class="nav-text">Returns & Refunds</span>
+                <div class="nav-indicator"></div>
+            </a></li>
+            <li><a href="refund-analytics.php" class="nav-link" data-page="refund-analytics">
+                <div class="nav-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <span class="nav-text">Refund Analytics</span>
+                <div class="nav-indicator"></div>
+            </a></li>
+        </ul>
+    </div>
+
+    <div class="nav-section">
         <h4 class="nav-section-title">Settings</h4>
         <ul>
             <li><a href="change-password.php" class="nav-link" data-page="password">
@@ -399,6 +453,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'categories': 'categories',
         'blogs': 'blogs',
         'banner-images': 'banners',
+        'orders': 'orders',
+        'returns': 'returns',
+        'refund-analytics': 'refund-analytics',
         'change-password': 'password'
     };
 

@@ -3,13 +3,19 @@ require_once 'includes/auth.php';
 
 // Redirect if not logged in
 if (!$auth->isLoggedIn()) {
-    header('Location: login.php');
+    $_SESSION['redirect_after_login'] = 'account.php';
+    header('Location: login-otp.php');
     exit();
 }
 
 $user = $auth->getCurrentUser();
 $success = '';
 $error = '';
+
+// Handle registration success message
+if (isset($_GET['registered'])) {
+    $success = 'Welcome to Alpha Nutrition! Your account has been created successfully with OTP verification.';
+}
 
 // Handle logout
 if (isset($_GET['logout'])) {

@@ -1,6 +1,7 @@
 <?php
-// User Authentication Functions
+// User Authentication Functions with OTP Support
 require_once 'db_connection.php';
+require_once 'otp-handler.php';
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
@@ -9,9 +10,11 @@ if (session_status() === PHP_SESSION_NONE) {
 
 class UserAuth {
     private $pdo;
+    private $otpHandler;
     
     public function __construct($pdo) {
         $this->pdo = $pdo;
+        $this->otpHandler = new OTPHandler($pdo);
     }
     
     // Generate UUID function
@@ -311,6 +314,340 @@ class UserAuth {
         } catch (Exception $e) {
             return ['success' => false, 'message' => 'Failed to reset password'];
         }
+    }
+
+    // =====================================================
+    // OTP-BASED AUTHENTICATION METHODS
+    // =====================================================
+
+    /**
+     * Register user with OTP verification
+     */
+    public function registerWithOTP($userData) {
+        try {
+            // Validate required fields
+            $requiredFields = ['first_name', 'last_name', 'phone', 'password'];
+            foreach ($requiredFields as $field) {
+                if (empty($userData[$field])) {
+                    return ['success' => false, 'message' => "Missing required field: $field"];
+                }
+            }
+
+            // Check if phone already exists
+            $stmt = $this->pdo->prepare("SELECT user_id FROM users WHERE phone = ?");
+            $stmt->execute([$userData['phone']]);
+            if ($stmt->fetch()) {
+                return ['success' => false, 'message' => 'Phone number already registered'];
+            }
+
+            // Check if email already exists (if provided)
+            if (!empty($userData['email'])) {
+                $stmt = $this->pdo->prepare("SELECT user_id FROM users WHERE email = ?");
+                $stmt->execute([$userData['email']]);
+                if ($stmt->fetch()) {
+                    return ['success' => false, 'message' => 'Email already registered'];
+                }
+            }
+
+            // Generate OTP for phone verification
+            $otpResult = $this->otpHandler->generateOTP($userData['phone'], 'registration');
+
+            if (!$otpResult['success']) {
+                return $otpResult;
+            }
+
+            // Store user data temporarily (in session or database)
+            $_SESSION['pending_registration'] = [
+                'user_data' => $userData,
+                'otp_id' => $otpResult['otp_id'],
+                'expires_at' => time() + 300 // 5 minutes
+            ];
+
+            return [
+                'success' => true,
+                'message' => 'OTP sent to your phone number',
+                'otp_id' => $otpResult['otp_id'],
+                'next_step' => 'verify_otp'
+            ];
+
+        } catch (Exception $e) {
+            error_log("Registration with OTP error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Registration failed'];
+        }
+    }
+
+    /**
+     * Complete registration after OTP verification
+     */
+    public function completeRegistration($phone, $otpCode) {
+        try {
+            // Check if there's pending registration
+            if (!isset($_SESSION['pending_registration'])) {
+                return ['success' => false, 'message' => 'No pending registration found'];
+            }
+
+            $pendingData = $_SESSION['pending_registration'];
+
+            // Check if session expired
+            if (time() > $pendingData['expires_at']) {
+                unset($_SESSION['pending_registration']);
+                return ['success' => false, 'message' => 'Registration session expired'];
+            }
+
+            // Verify OTP
+            $verifyResult = $this->otpHandler->verifyOTP($phone, $otpCode, 'registration');
+
+            if (!$verifyResult['success']) {
+                return $verifyResult;
+            }
+
+            // Create user account
+            $userData = $pendingData['user_data'];
+            $userId = $this->generateUUID();
+            $passwordHash = password_hash($userData['password'], PASSWORD_DEFAULT);
+
+            $stmt = $this->pdo->prepare("
+                INSERT INTO users (
+                    user_id, first_name, last_name, email, phone,
+                    password_hash, phone_verified, is_active
+                ) VALUES (?, ?, ?, ?, ?, ?, 1, 1)
+            ");
+
+            $stmt->execute([
+                $userId,
+                $userData['first_name'],
+                $userData['last_name'],
+                $userData['email'] ?? null,
+                $userData['phone'],
+                $passwordHash
+            ]);
+
+            // Create default preferences
+            $this->createDefaultPreferences($userId);
+
+            // Clean up session
+            unset($_SESSION['pending_registration']);
+
+            // Auto-login user
+            $this->createSession([
+                'user_id' => $userId,
+                'first_name' => $userData['first_name'],
+                'last_name' => $userData['last_name'],
+                'email' => $userData['email'] ?? '',
+                'phone_verified' => 1
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Registration completed successfully',
+                'user_id' => $userId
+            ];
+
+        } catch (Exception $e) {
+            error_log("Complete registration error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Registration completion failed'];
+        }
+    }
+
+    /**
+     * Login with OTP (passwordless login)
+     */
+    public function loginWithOTP($identifier) {
+        try {
+            // Check if identifier is phone or email
+            $isPhone = $this->isPhoneNumber($identifier);
+            $field = $isPhone ? 'phone' : 'email';
+
+            // Check if user exists
+            $stmt = $this->pdo->prepare("
+                SELECT user_id, first_name, last_name, email, phone, is_active, phone_verified
+                FROM users WHERE $field = ?
+            ");
+            $stmt->execute([$identifier]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                return ['success' => false, 'message' => 'User not found'];
+            }
+
+            if (!$user['is_active']) {
+                return ['success' => false, 'message' => 'Account is deactivated'];
+            }
+
+            // For phone login, check if phone is verified
+            if ($isPhone && !$user['phone_verified']) {
+                return ['success' => false, 'message' => 'Phone number not verified'];
+            }
+
+            // Generate OTP
+            $otpResult = $this->otpHandler->generateOTP($identifier, 'login', $user['user_id']);
+
+            if (!$otpResult['success']) {
+                return $otpResult;
+            }
+
+            return [
+                'success' => true,
+                'message' => 'OTP sent successfully',
+                'otp_id' => $otpResult['otp_id'],
+                'method' => $otpResult['method']
+            ];
+
+        } catch (Exception $e) {
+            error_log("Login with OTP error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Login failed'];
+        }
+    }
+
+    /**
+     * Complete OTP login
+     */
+    public function completeOTPLogin($identifier, $otpCode) {
+        try {
+            // Verify OTP
+            $verifyResult = $this->otpHandler->verifyOTP($identifier, $otpCode, 'login');
+
+            if (!$verifyResult['success']) {
+                return $verifyResult;
+            }
+
+            // Get user details
+            $isPhone = $this->isPhoneNumber($identifier);
+            $field = $isPhone ? 'phone' : 'email';
+
+            $stmt = $this->pdo->prepare("
+                SELECT user_id, first_name, last_name, email, phone, phone_verified, email_verified
+                FROM users WHERE $field = ? AND is_active = 1
+            ");
+            $stmt->execute([$identifier]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                return ['success' => false, 'message' => 'User not found'];
+            }
+
+            // Update last login
+            $this->updateLastLogin($user['user_id']);
+
+            // Create session
+            $this->createSession($user);
+
+            return [
+                'success' => true,
+                'message' => 'Login successful',
+                'user' => [
+                    'user_id' => $user['user_id'],
+                    'first_name' => $user['first_name'],
+                    'last_name' => $user['last_name'],
+                    'email' => $user['email'],
+                    'phone' => $user['phone'],
+                    'phone_verified' => $user['phone_verified'],
+                    'email_verified' => $user['email_verified']
+                ]
+            ];
+
+        } catch (Exception $e) {
+            error_log("Complete OTP login error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Login completion failed'];
+        }
+    }
+
+    /**
+     * Password reset with OTP
+     */
+    public function requestPasswordResetOTP($identifier) {
+        try {
+            // Check if user exists
+            $isPhone = $this->isPhoneNumber($identifier);
+            $field = $isPhone ? 'phone' : 'email';
+
+            $stmt = $this->pdo->prepare("
+                SELECT user_id, first_name, last_name
+                FROM users WHERE $field = ? AND is_active = 1
+            ");
+            $stmt->execute([$identifier]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                return ['success' => false, 'message' => 'User not found'];
+            }
+
+            // Generate OTP
+            $otpResult = $this->otpHandler->generateOTP($identifier, 'password_reset', $user['user_id']);
+
+            if (!$otpResult['success']) {
+                return $otpResult;
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Password reset OTP sent',
+                'otp_id' => $otpResult['otp_id']
+            ];
+
+        } catch (Exception $e) {
+            error_log("Password reset OTP error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Password reset request failed'];
+        }
+    }
+
+    /**
+     * Reset password with OTP verification
+     */
+    public function resetPasswordWithOTP($identifier, $otpCode, $newPassword) {
+        try {
+            // Verify OTP
+            $verifyResult = $this->otpHandler->verifyOTP($identifier, $otpCode, 'password_reset');
+
+            if (!$verifyResult['success']) {
+                return $verifyResult;
+            }
+
+            // Get user
+            $isPhone = $this->isPhoneNumber($identifier);
+            $field = $isPhone ? 'phone' : 'email';
+
+            $stmt = $this->pdo->prepare("
+                SELECT user_id FROM users WHERE $field = ? AND is_active = 1
+            ");
+            $stmt->execute([$identifier]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                return ['success' => false, 'message' => 'User not found'];
+            }
+
+            // Update password
+            $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $this->pdo->prepare("
+                UPDATE users
+                SET password_hash = ?, password_reset_token = NULL, password_reset_expires = NULL
+                WHERE user_id = ?
+            ");
+            $stmt->execute([$passwordHash, $user['user_id']]);
+
+            return ['success' => true, 'message' => 'Password reset successful'];
+
+        } catch (Exception $e) {
+            error_log("Reset password with OTP error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Password reset failed'];
+        }
+    }
+
+    /**
+     * Check if string is a phone number
+     */
+    private function isPhoneNumber($identifier) {
+        $cleaned = preg_replace('/[^0-9]/', '', $identifier);
+        return preg_match('/^[6-9][0-9]{9}$/', $cleaned) ||
+               preg_match('/^91[6-9][0-9]{9}$/', $cleaned);
+    }
+
+    /**
+     * Resend OTP
+     */
+    public function resendOTP($identifier, $otpType) {
+        return $this->otpHandler->resendOTP($identifier, $otpType);
     }
 }
 
