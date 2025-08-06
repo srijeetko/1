@@ -97,10 +97,70 @@ foreach ($_SESSION['cart'] as $cartKey => $cartData) {
     <title>Checkout - Alpha Nutrition</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/coupon-handler.js"></script>
+
+    <style>
+        .coupon-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .coupon-section h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .discount-row {
+            color: #28a745 !important;
+            font-weight: 600;
+        }
+
+        .discount-row span:last-child {
+            color: #28a745 !important;
+        }
+
+        .order-summary {
+            position: sticky;
+            top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .coupon-input-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .coupon-input {
+                width: 100%;
+            }
+
+            .coupon-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
     
     <!-- Step Navigation and Form Handling Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize coupon handler
+            const couponHandler = new CouponHandler({
+                apiUrl: 'admin/api/coupon-api.php',
+                couponInputId: 'coupon_code',
+                applyButtonId: 'apply_coupon',
+                removeButtonId: 'remove_coupon',
+                messageContainerId: 'coupon_message',
+                totalAmountId: 'total_amount',
+                discountAmountId: 'discount_amount',
+                finalAmountId: 'total_amount'
+            });
+
             // Step navigation functions
             window.proceedToStep2 = function() {
                 console.log('proceedToStep2 called');
@@ -256,7 +316,14 @@ foreach ($_SESSION['cart'] as $cartKey => $cartData) {
                         // For Cashfree payment, first create order
                         const formData = new FormData(checkoutForm);
                         formData.append('payment_method', 'cashfree');
-                        
+
+                        // Add coupon data if applied
+                        if (couponHandler.hasCouponApplied()) {
+                            const appliedCoupon = couponHandler.getAppliedCoupon();
+                            formData.append('coupon_id', appliedCoupon.coupon_id);
+                            formData.append('discount_amount', couponHandler.getDiscountAmount().toFixed(2));
+                        }
+
                         // Convert FormData to URL-encoded string
                         const searchParams = new URLSearchParams();
                         for (const [key, value] of formData) {
@@ -286,7 +353,24 @@ foreach ($_SESSION['cart'] as $cartKey => $cartData) {
                             alert('Failed to create order. Please try again.');
                         });
                     } else {
-                        // For COD, submit form normally
+                        // For COD, add coupon data and submit form
+                        if (couponHandler.hasCouponApplied()) {
+                            const appliedCoupon = couponHandler.getAppliedCoupon();
+
+                            // Create hidden inputs for coupon data
+                            const couponIdInput = document.createElement('input');
+                            couponIdInput.type = 'hidden';
+                            couponIdInput.name = 'coupon_id';
+                            couponIdInput.value = appliedCoupon.coupon_id;
+                            checkoutForm.appendChild(couponIdInput);
+
+                            const discountInput = document.createElement('input');
+                            discountInput.type = 'hidden';
+                            discountInput.name = 'discount_amount';
+                            discountInput.value = couponHandler.getDiscountAmount().toFixed(2);
+                            checkoutForm.appendChild(discountInput);
+                        }
+
                         checkoutForm.submit();
                     }
                 });
@@ -618,18 +702,37 @@ foreach ($_SESSION['cart'] as $cartKey => $cartData) {
                         <?php endforeach; ?>
                     </div>
 
+                    <!-- Coupon Section -->
+                    <div class="coupon-section">
+                        <h4>Have a Coupon Code?</h4>
+                        <div class="coupon-input-group">
+                            <input type="text" id="coupon_code" class="coupon-input" placeholder="Enter coupon code" maxlength="50">
+                            <button type="button" id="apply_coupon" class="coupon-btn coupon-btn-apply">
+                                <i class="fas fa-tag"></i> Apply
+                            </button>
+                            <button type="button" id="remove_coupon" class="coupon-btn coupon-btn-remove" style="display: none;">
+                                <i class="fas fa-times"></i> Remove
+                            </button>
+                        </div>
+                        <div id="coupon_message"></div>
+                    </div>
+
                     <div class="order-totals">
                         <div class="total-line">
                             <span>Subtotal</span>
-                            <span>₹<?php echo number_format($totalAmount, 0); ?></span>
+                            <span id="subtotal_amount">₹<?php echo number_format($totalAmount, 0); ?></span>
                         </div>
                         <div class="total-line">
                             <span>Shipping</span>
                             <span class="free-shipping">FREE</span>
                         </div>
+                        <div class="total-line discount-row" id="discount_row" style="display: none;">
+                            <span>Discount</span>
+                            <span id="discount_amount">-₹0.00</span>
+                        </div>
                         <div class="total-line final-total">
                             <span>Total</span>
-                            <span>₹<?php echo number_format($totalAmount, 0); ?></span>
+                            <span id="total_amount">₹<?php echo number_format($totalAmount, 0); ?></span>
                         </div>
                     </div>
 

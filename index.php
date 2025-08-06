@@ -61,6 +61,22 @@ $featuredQuery = "
 $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
 ?>
 
+<!-- Development Notice Slider -->
+<div id="developmentNotice" class="development-notice-slider">
+    <div class="development-notice-content">
+        <div class="development-notice-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="development-notice-text">
+            <strong>Website Under Development & Maintenance</strong>
+            <p>Please note that ordered products until the date - 8-08-2025 will not be considered</p>
+        </div>
+        <button class="development-notice-close" onclick="closeDevelopmentNotice()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
 <!-- Hero Section -->
 <section class="hero">
     <div class="hero-image-slider" id="hero-image-slider">
@@ -68,6 +84,7 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
         <?php foreach ($heroImages as $index => $image): ?>
         <div class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?>" id="slide-<?php echo $index; ?>">
             <img src="assets/<?php echo htmlspecialchars($image); ?>" alt="Hero Image">
+            
         </div>
         <?php endforeach; ?>
 
@@ -1802,8 +1819,50 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
 <!-- Footer -->
 <?php include 'includes/footer.php'; ?>
 <script>
+// Development Notice Slider functionality
+function showDevelopmentNotice() {
+    const notice = document.getElementById('developmentNotice');
+    if (notice) {
+        // Show the notice after a short delay
+        setTimeout(() => {
+            notice.classList.add('show');
+            document.body.classList.add('notice-shown');
+        }, 500);
+    }
+}
+
+function closeDevelopmentNotice() {
+    const notice = document.getElementById('developmentNotice');
+    if (notice) {
+        notice.classList.remove('show');
+        document.body.classList.remove('notice-shown');
+
+        // Store in localStorage to remember user closed it
+        localStorage.setItem('developmentNoticeClosedAt', Date.now());
+
+        // Remove from DOM after animation
+        setTimeout(() => {
+            notice.style.display = 'none';
+        }, 500);
+    }
+}
+
+// Check if notice should be shown
+function shouldShowDevelopmentNotice() {
+    const closedAt = localStorage.getItem('developmentNoticeClosedAt');
+    if (!closedAt) return true;
+
+    // Show again after 24 hours (86400000 ms)
+    const dayInMs = 24 * 60 * 60 * 1000;
+    return (Date.now() - parseInt(closedAt)) > dayInMs;
+}
+
 // Hero slider functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Show development notice if needed
+    if (shouldShowDevelopmentNotice()) {
+        showDevelopmentNotice();
+    }
     const slides = document.querySelectorAll('.hero-slide');
     const leftBtn = document.getElementById('hero-slider-left');
     const rightBtn = document.getElementById('hero-slider-right');

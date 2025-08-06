@@ -200,22 +200,49 @@ try {
         throw new Exception("Invalid order total. Please check your cart and try again. (Debug: $debug_info)");
     }
     
+    // Handle coupon data
+    $coupon_id = $_POST['coupon_id'] ?? null;
+    $discount_amount = floatval($_POST['discount_amount'] ?? 0);
+
+    // If coupon is applied, validate it and update usage
+    if ($coupon_id) {
+        $stmt = $pdo->prepare("
+            SELECT * FROM coupons
+            WHERE coupon_id = ? AND is_active = 1 AND expires_at > NOW()
+        ");
+        $stmt->execute([$coupon_id]);
+        $coupon = $stmt->fetch();
+
+        if ($coupon) {
+            // Update coupon usage count
+            $stmt = $pdo->prepare("UPDATE coupons SET usage_count = usage_count + 1 WHERE coupon_id = ?");
+            $stmt->execute([$coupon_id]);
+
+            // Adjust total amount with discount
+            $totalAmount = max(0, $totalAmount - $discount_amount);
+        } else {
+            // Invalid coupon, reset coupon data
+            $coupon_id = null;
+            $discount_amount = 0;
+        }
+    }
+
     // Generate order ID and order number
     $order_id = bin2hex(random_bytes(16));
     $order_number = 'ORD-' . date('Ymd') . '-' . strtoupper(substr($order_id, 0, 6));
-    
+
     // Insert order into checkout_orders table
     $stmt = $pdo->prepare("
         INSERT INTO checkout_orders (
             order_id, order_number, user_id, first_name, last_name, email, phone,
-            address, city, state, pincode, total_amount, payment_method,
+            address, city, state, pincode, total_amount, payment_method, coupon_id,
             order_status, payment_status, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', NOW())
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', NOW())
     ");
 
     $result = $stmt->execute([
         $order_id, $order_number, $user_id, $firstName, $lastName, $email, $phone,
-        $address, $city, $state, $pincode, $totalAmount, $paymentMethod
+        $address, $city, $state, $pincode, $totalAmount, $paymentMethod, $coupon_id
     ]);
 
     // Log order creation for debugging

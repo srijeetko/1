@@ -158,6 +158,23 @@ $products = $stmt->fetchAll();
     </section>
 
     <style>
+    /* Full Width Layout Override for Products Page */
+    .products-section .container {
+        max-width: 100% !important;
+        padding: 0 2rem !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Force exactly 4 products per row */
+    .products-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 0.75rem !important;
+        padding: 2rem 0 !important;
+        align-items: stretch !important;
+    }
+
     /* Remove all borders and shadows from product cards */
     .product-card {
         border: none !important;
@@ -319,6 +336,10 @@ $products = $stmt->fetchAll();
 
     /* Mobile Responsive Styles for Products Page */
     @media (max-width: 768px) {
+        .products-section .container {
+            padding: 0 1rem !important;
+        }
+
         .products-section {
             padding: 2rem 0;
         }
@@ -351,8 +372,8 @@ $products = $stmt->fetchAll();
         }
 
         .products-grid {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 0.75rem;
         }
 
         .product-card {
@@ -423,8 +444,8 @@ $products = $stmt->fetchAll();
     }
 
     @media (max-width: 480px) {
-        .container {
-            padding: 0 15px;
+        .products-section .container {
+            padding: 0 0.5rem !important;
         }
 
         .section-title {
@@ -432,8 +453,8 @@ $products = $stmt->fetchAll();
         }
 
         .products-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.5rem;
         }
 
         .product-card {
@@ -448,6 +469,14 @@ $products = $stmt->fetchAll();
         .filter-btn {
             padding: 6px 12px;
             font-size: 0.8rem;
+        }
+    }
+
+    /* Very small screens - 1 product per row */
+    @media (max-width: 320px) {
+        .products-grid {
+            grid-template-columns: 1fr !important;
+            gap: 0.5rem;
         }
     }
     </style>

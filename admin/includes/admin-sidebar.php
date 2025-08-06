@@ -100,6 +100,19 @@
     </div>
 
     <div class="nav-section">
+        <h4 class="nav-section-title">Marketing</h4>
+        <ul>
+            <li><a href="coupons.php" class="nav-link" data-page="coupons">
+                <div class="nav-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <span class="nav-text">Coupons</span>
+                <div class="nav-indicator"></div>
+            </a></li>
+        </ul>
+    </div>
+
+    <div class="nav-section">
         <h4 class="nav-section-title">Order Management</h4>
         <ul>
             <li><a href="orders.php" class="nav-link" data-page="orders">
@@ -453,6 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'categories': 'categories',
         'blogs': 'blogs',
         'banner-images': 'banners',
+        'coupons': 'coupons',
         'orders': 'orders',
         'returns': 'returns',
         'refund-analytics': 'refund-analytics',

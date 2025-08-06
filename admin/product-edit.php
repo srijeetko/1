@@ -213,6 +213,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare('UPDATE products SET stock_quantity = ? WHERE product_id = ?');
         $stmt->execute([$totalStock, $productId]);
 
+        // Handle primary image selection for existing images
+        if (isset($_POST['primary_image']) && !empty($_POST['primary_image'])) {
+            // First, set all existing images as non-primary
+            $stmt = $pdo->prepare('UPDATE product_images SET is_primary = 0 WHERE product_id = ?');
+            $stmt->execute([$productId]);
+
+            // Then set the selected image as primary
+            $stmt = $pdo->prepare('UPDATE product_images SET is_primary = 1 WHERE image_id = ? AND product_id = ?');
+            $stmt->execute([$_POST['primary_image'], $productId]);
+        }
+
         // Handle image uploads
         if (!empty($_FILES['images']['name'][0])) {
             $uploadDir = '../assets/';
@@ -232,10 +243,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             if (isset($_POST['primary_image']) && $_POST['primary_image'] == $key) {
                                 $isPrimary = 1;
                                 $primarySet = true;
+                                // If selecting a new uploaded image as primary, clear existing primary
+                                $stmt = $pdo->prepare('UPDATE product_images SET is_primary = 0 WHERE product_id = ?');
+                                $stmt->execute([$productId]);
                             } elseif (!$primarySet && $key == 0 && !isset($_POST['primary_image'])) {
                                 // If no primary selected, set first image as primary
                                 $isPrimary = 1;
                                 $primarySet = true;
+                                // Clear existing primary images
+                                $stmt = $pdo->prepare('UPDATE product_images SET is_primary = 0 WHERE product_id = ?');
+                                $stmt->execute([$productId]);
                             }
                             $stmt = $pdo->prepare('INSERT INTO product_images (image_id, product_id, image_url, is_primary)
                                                  VALUES (?, ?, ?, ?)');
