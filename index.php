@@ -62,16 +62,16 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
 ?>
 
 <!-- Development Notice Slider -->
-<div id="developmentNotice" class="development-notice-slider">
-    <div class="development-notice-content">
-        <div class="development-notice-icon">
+<div id="developmentNotice" class="development-notice-slider" style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important; color: white !important; z-index: 10000 !important; transform: translateY(-100%) !important; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important; margin: 0 !important; padding: 0 !important; border: none !important; display: block !important;">
+    <div class="development-notice-content" style="display: flex !important; align-items: center !important; justify-content: center !important; padding: 1rem 2rem !important; max-width: 1400px !important; margin: 0 auto !important; gap: 1rem !important; position: relative !important; background: transparent !important; border: none !important;">
+        <div class="development-notice-icon" style="font-size: 1.5rem !important; color: #fff !important; animation: pulse 2s infinite !important;">
             <i class="fas fa-exclamation-triangle"></i>
         </div>
-        <div class="development-notice-text">
-            <strong>Website Under Development & Maintenance</strong>
-            <p>Please note that ordered products until the date - 8-08-2025 will not be considered</p>
+        <div class="development-notice-text" style="flex: 1 !important; text-align: center !important;">
+            <strong style="display: block !important; font-size: 1.1rem !important; font-weight: 700 !important; margin-bottom: 0.25rem !important; color: white !important;">Website Under Development & Maintenance</strong>
+            <p style="margin: 0 !important; font-size: 0.9rem !important; opacity: 0.95 !important; color: white !important;">Please note that ordered products will not be considered</p>
         </div>
-        <button class="development-notice-close" onclick="closeDevelopmentNotice()">
+        <button class="development-notice-close" onclick="closeDevelopmentNotice()" style="background: rgba(255, 255, 255, 0.2) !important; border: none !important; color: white !important; width: 32px !important; height: 32px !important; border-radius: 50% !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; transition: all 0.3s ease !important; font-size: 0.9rem !important;">
             <i class="fas fa-times"></i>
         </button>
     </div>
@@ -1822,18 +1822,25 @@ $featuredProducts = $pdo->query($featuredQuery)->fetchAll();
 // Development Notice Slider functionality
 function showDevelopmentNotice() {
     const notice = document.getElementById('developmentNotice');
+    console.log('showDevelopmentNotice called, notice element:', notice);
     if (notice) {
+        console.log('Notice element found, showing...');
         // Show the notice after a short delay
         setTimeout(() => {
+            notice.style.transform = 'translateY(0)';
             notice.classList.add('show');
             document.body.classList.add('notice-shown');
-        }, 500);
+            console.log('Notice should now be visible');
+        }, 100); // Reduced delay for testing
+    } else {
+        console.log('Notice element not found!');
     }
 }
 
 function closeDevelopmentNotice() {
     const notice = document.getElementById('developmentNotice');
     if (notice) {
+        notice.style.transform = 'translateY(-100%)';
         notice.classList.remove('show');
         document.body.classList.remove('notice-shown');
 
@@ -1849,20 +1856,42 @@ function closeDevelopmentNotice() {
 
 // Check if notice should be shown
 function shouldShowDevelopmentNotice() {
-    const closedAt = localStorage.getItem('developmentNoticeClosedAt');
-    if (!closedAt) return true;
+    try {
+        const closedAt = localStorage.getItem('developmentNoticeClosedAt');
+        console.log('Closed at timestamp:', closedAt);
+        if (!closedAt) {
+            console.log('No close timestamp found, showing notice');
+            return true;
+        }
 
-    // Show again after 24 hours (86400000 ms)
-    const dayInMs = 24 * 60 * 60 * 1000;
-    return (Date.now() - parseInt(closedAt)) > dayInMs;
+        // Show again after 24 hours (86400000 ms)
+        const dayInMs = 24 * 60 * 60 * 1000;
+        const shouldShow = (Date.now() - parseInt(closedAt)) > dayInMs;
+        console.log('Should show based on time check:', shouldShow);
+        return shouldShow;
+    } catch (e) {
+        console.log('localStorage error, showing notice anyway:', e);
+        return true; // If localStorage fails, show the notice
+    }
 }
 
 // Hero slider functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Show development notice if needed
+    console.log('Page loaded, checking if development notice should show...');
+
+    // Temporary: Always show for testing (remove this line after testing)
+    showDevelopmentNotice();
+
+    // Normal logic (commented out for testing)
+    /*
     if (shouldShowDevelopmentNotice()) {
+        console.log('Showing development notice...');
         showDevelopmentNotice();
+    } else {
+        console.log('Development notice was previously closed, not showing.');
     }
+    */
     const slides = document.querySelectorAll('.hero-slide');
     const leftBtn = document.getElementById('hero-slider-left');
     const rightBtn = document.getElementById('hero-slider-right');
